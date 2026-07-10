@@ -1,4 +1,4 @@
-﻿from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import ASCENDING, DESCENDING
 from config import MONGO_URL, DB_NAME
 

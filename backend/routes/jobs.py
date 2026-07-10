@@ -1,17 +1,18 @@
-﻿import re
-from datetime import datetime, timezone
-from typing import Annotated
+from __future__ import annotations
+
+import re
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from pymongo import DESCENDING, ReturnDocument
 
-from database import jobs_collection
-from routes.auth import can_manage_jobs
-from routes.notifications import fire_and_forget, notify_new_job
+from external_jobs import build_search_links, list_platforms, normalize_query
 
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
+
+MANUAL_POSTING_RETIRED = (
+    "Manual job posting has been retired. This portal now sends users to external job platforms."
+)
 
 
 class JobBase(BaseModel):
@@ -74,94 +75,79 @@ class JobUpdate(BaseModel):
         return cleaned
 
 
-def job_helper(job: dict) -> dict:
-    return {
-        "id": str(job["_id"]),
-        "title": job.get("title", ""),
-        "description": job.get("description", ""),
-        "required_skills": job.get("required_skills", []),
-        "location": job.get("location", ""),
-        "company": job.get("company", ""),
-        "created_at": job.get("created_at"),
-        "updated_at": job.get("updated_at"),
-    }
-
-
 def parse_object_id(job_id: str) -> ObjectId:
     if not ObjectId.is_valid(job_id):
         raise HTTPException(status_code=400, detail="Invalid job id")
     return ObjectId(job_id)
 
 
+def _manual_job_error() -> HTTPException:
+    return HTTPException(status_code=status.HTTP_410_GONE, detail=MANUAL_POSTING_RETIRED)
+
+
+def _search_result_card(link: dict) -> dict:
+    return {
+        "id": re.sub(r"[^a-z0-9]+", "-", f"{link['site']}-{link['query']}".lower()).strip("-"),
+        "title": f"{link['query']} jobs",
+        "description": f"Open live {link['site']} search results for {link['query']}.",
+        "required_skills": [],
+        "location": "External platform",
+        "company": link["site"],
+        "source_site": link["site"],
+        "link": link["url"],
+        "query": link["query"],
+        "external": True,
+    }
+
+
 @router.get("/")
-async def get_all_jobs(
-    q: str | None = Query(default=None, max_length=100),
-    skip: Annotated[int, Query(ge=0)] = 0,
-    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+async def get_job_platforms(
+    q: str | None = Query(default=None, max_length=120),
+    category: str = Query(default="all", pattern="^(all|private|government|internship)$"),
 ):
-    query = {}
-    if q and q.strip():
-        pattern = re.escape(q.strip())
-        query = {
-            "$or": [
-                {"title": {"$regex": pattern, "$options": "i"}},
-                {"company": {"$regex": pattern, "$options": "i"}},
-                {"location": {"$regex": pattern, "$options": "i"}},
-                {"required_skills": {"$regex": pattern, "$options": "i"}},
-            ]
-        }
+    query = " ".join((q or "").split())
+    platforms = list_platforms(category=category, q=query)
+    search_results = build_search_links(query, limit=6) if query and category != "government" else []
 
-    cursor = jobs_collection.find(query).sort("created_at", DESCENDING).skip(skip).limit(limit)
-    return [job_helper(job) async for job in cursor]
+    return {
+        "mode": "external_only",
+        "category": category,
+        "query": query,
+        "platforms": platforms,
+        "search_results": [_search_result_card(link) for link in search_results],
+        "message": "This portal uses external job platforms instead of storing local job posts.",
+    }
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_job(job: JobCreate, _current_user: dict = Depends(can_manage_jobs)):
-    now = datetime.now(timezone.utc)
-    new_job = job.model_dump()
-    new_job.update({"created_at": now, "updated_at": now})
-    result = await jobs_collection.insert_one(new_job)
-    created_job = await jobs_collection.find_one({"_id": result.inserted_id})
-    payload = job_helper(created_job)
-    fire_and_forget(notify_new_job(payload))
-    return payload
+@router.get("/search")
+async def search_external_jobs(
+    q: str = Query(min_length=2, max_length=120),
+):
+    query = normalize_query(q)
+    links = build_search_links(query, limit=6)
+    return {
+        "mode": "external_only",
+        "query": query,
+        "results": [_search_result_card(link) for link in links],
+        "platforms": list_platforms(category="private"),
+    }
+
+
+@router.post("/", status_code=status.HTTP_410_GONE)
+async def create_job(_job: JobCreate):
+    raise _manual_job_error()
 
 
 @router.get("/{job_id}")
-async def get_job(job_id: str):
-    job = await jobs_collection.find_one({"_id": parse_object_id(job_id)})
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job_helper(job)
+async def get_job(_job_id: str):
+    raise _manual_job_error()
 
 
 @router.patch("/{job_id}")
-async def update_job(
-    job_id: str,
-    changes: JobUpdate,
-    _current_user: dict = Depends(can_manage_jobs),
-):
-    update_data = changes.model_dump(exclude_unset=True)
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No fields provided for update")
-    update_data["updated_at"] = datetime.now(timezone.utc)
-
-    job = await jobs_collection.find_one_and_update(
-        {"_id": parse_object_id(job_id)},
-        {"$set": update_data},
-        return_document=ReturnDocument.AFTER,
-    )
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job_helper(job)
+async def update_job(_job_id: str, _changes: JobUpdate):
+    raise _manual_job_error()
 
 
 @router.delete("/{job_id}")
-async def delete_job(job_id: str, _current_user: dict = Depends(can_manage_jobs)):
-    object_id = parse_object_id(job_id)
-    result = await jobs_collection.delete_one({"_id": object_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return {"message": "Job deleted successfully", "id": job_id}
-
-
+async def delete_job(_job_id: str):
+    raise _manual_job_error()

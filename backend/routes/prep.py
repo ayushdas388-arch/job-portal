@@ -121,8 +121,9 @@ class StudyPlanRequest(BaseModel):
 
 class QuizRequest(BaseModel):
     topic: str = Field(min_length=1, max_length=120)
-    count: int = Field(default=5, ge=1, le=10)
+    count: int = Field(default=30, ge=1, le=50)
     difficulty: str = Field(default="medium", max_length=20)
+    seed: str = Field(default="", max_length=100)
 
 
 # ---------------------------------------------------------------------------
@@ -149,10 +150,10 @@ def _weeks_until(exam_date: Optional[str]) -> int:
 def fallback_study_plan(data: StudyPlanRequest) -> dict:
     weeks = _weeks_until(data.exam_date)
     phases = [
-        ("Build the base", "Syllabus samjho, basics + NCERT/standard books cover karo."),
-        ("Core practice", "Har topic ke notes banao aur roz practice questions solve karo."),
-        ("Mock tests", "Full-length mock tests do, mistakes analyse karo."),
-        ("Revision", "Sirf revision + weak areas + previous year papers."),
+        ("Build the base", "Understand the syllabus and cover the basics with NCERT or standard books."),
+        ("Core practice", "Make notes for each topic and solve practice questions every day."),
+        ("Mock tests", "Take full-length mock tests and analyze your mistakes."),
+        ("Revision", "Focus on revision, weak areas, and previous year papers."),
     ]
     plan = []
     for i in range(weeks):
@@ -163,15 +164,15 @@ def fallback_study_plan(data: StudyPlanRequest) -> dict:
             "focus": phase[0],
             "tasks": [
                 phase[1],
-                f"Roz ~{data.hours_per_day} ghante padho.",
-                "Weekly ek chhota test lo apne aap ka.",
+                f"Study for about {data.hours_per_day} hours each day.",
+                "Take one short self-test every week.",
             ],
         })
     return {
         "target": data.target,
         "weeks": weeks,
         "hours_per_day": data.hours_per_day,
-        "summary": f"{data.target} ke liye {weeks}-week plan, roz {data.hours_per_day} ghante ke hisaab se.",
+        "summary": f"A {weeks}-week plan for {data.target}, based on {data.hours_per_day} study hours per day.",
         "plan": plan,
         "source": "fallback",
     }
@@ -191,7 +192,7 @@ def gemini_study_plan(data: StudyPlanRequest) -> dict:
         "Reply ONLY with JSON of this exact shape: "
         '{"summary": string, "plan": [{"week": number, "focus": string, '
         '"tasks": [string, string, string]}]}. '
-        "Keep tasks short and practical. You may mix simple Hindi/English (Hinglish)."
+        "Keep tasks short, practical, and written in clear English."
     )
     try:
         response = gemini_client.models.generate_content(
@@ -275,13 +276,13 @@ def fallback_quiz(data: QuizRequest) -> dict:
             break
     note = ""
     if not questions:
-        note = "AI setup na hone par sirf sample questions dikhte hain. Gemini key daalein taaki har topic pe questions banein."
+        note = "AI is not configured, so only sample questions are available. Add a Gemini key to generate questions for any topic."
         questions = [
             {
-                "question": f"'{data.topic}' ke basics padhne ke baad, sabse pehle kya karna chahiye?",
-                "options": ["Practice questions solve karna", "Kuch nahi", "Sirf videos dekhna", "Skip karna"],
+                "question": f"After learning the basics of '{data.topic}', what should you do first?",
+                "options": ["Solve practice questions", "Do nothing", "Only watch videos", "Skip it"],
                 "answer_index": 0,
-                "explanation": "Concept ke baad practice se hi retention aata hai.",
+                "explanation": "Practice is what turns understanding into long-term retention.",
             }
         ]
     return {
@@ -298,8 +299,9 @@ def gemini_quiz(data: QuizRequest) -> dict:
         return fallback_quiz(data)
 
     prompt = (
-        f"Generate {data.count} multiple-choice practice questions on the topic "
-        f"'{data.topic}' at {data.difficulty} difficulty, for Indian exam/interview prep. "
+        f"Generate {data.count} multiple-choice practice questions covering multiple related sub-domains for the topic "
+        f"'{data.topic}' at a '{data.difficulty}' difficulty level, for Indian exam/job interview preparation. "
+        f"Randomize the selection of questions (Seed: {data.seed}). Do not repeat questions from previous standard sets. "
         "Reply ONLY with JSON of this exact shape: "
         '{"questions": [{"question": string, "options": [string, string, string, string], '
         '"answer_index": number (0-3), "explanation": string}]}. '
@@ -337,7 +339,10 @@ def gemini_quiz(data: QuizRequest) -> dict:
         }
     except Exception as exc:
         logger.warning("gemini_quiz failed: %s", exc)
-        return fallback_quiz(data)
+        fallback = fallback_quiz(data)
+        if "429" in str(exc) or "RESOURCE_EXHAUSTED" in str(exc):
+            fallback["note"] = "Gemini API Quota Exceeded (Rate Limit). Please wait or update your API key. Showing limited sample questions for now."
+        return fallback
 
 
 # ---------------------------------------------------------------------------

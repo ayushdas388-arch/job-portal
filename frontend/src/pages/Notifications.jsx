@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import API from '../api/axios'
+import BrandIcon from '../components/BrandIcon'
 
 function Notifications() {
   const token = localStorage.getItem('token')
@@ -34,7 +35,7 @@ function Notifications() {
       const { data } = await API.post('/notifications/telegram/connect')
       setConnect(data)
     } catch (error) {
-      setMsg(error?.response?.data?.detail || 'Connect nahi ho paya.')
+      setMsg(error?.response?.data?.detail || 'Could not connect.')
     } finally {
       setBusy('')
     }
@@ -47,9 +48,9 @@ function Notifications() {
       const { data } = await API.post('/notifications/telegram/verify')
       setStatus(data)
       setConnect(null)
-      setMsg('✅ Telegram connect ho gaya!')
+      setMsg('✅ Telegram connected!')
     } catch (error) {
-      setMsg(error?.response?.data?.detail || 'Verify nahi hua.')
+      setMsg(error?.response?.data?.detail || 'Verification failed.')
     } finally {
       setBusy('')
     }
@@ -61,9 +62,9 @@ function Notifications() {
     try {
       const { data } = await API.post('/notifications/telegram/disconnect')
       setStatus(data)
-      setMsg('Telegram disconnect ho gaya.')
+      setMsg('Telegram disconnected.')
     } catch (error) {
-      setMsg(error?.response?.data?.detail || 'Disconnect nahi hua.')
+      setMsg(error?.response?.data?.detail || 'Could not disconnect.')
     } finally {
       setBusy('')
     }
@@ -74,9 +75,9 @@ function Notifications() {
     setMsg('')
     try {
       await API.post('/notifications/test')
-      setMsg('📨 Test message bhej diya — Telegram check karo!')
+      setMsg('📨 Test message sent — check your Telegram!')
     } catch (error) {
-      setMsg(error?.response?.data?.detail || 'Test message fail hua.')
+      setMsg(error?.response?.data?.detail || 'Test message failed.')
     } finally {
       setBusy('')
     }
@@ -98,8 +99,8 @@ function Notifications() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6 text-center">
         <h1 className="text-3xl font-bold text-blue-600 mb-3">🔔 Notifications</h1>
-        <p className="text-gray-500 mb-6">Telegram alerts set karne ke liye login karein.</p>
-        <Link to="/login" className="neon-btn">Login karo</Link>
+        <p className="text-gray-500 mb-6">Log in to set up Telegram alerts.</p>
+        <Link to="/login" className="neon-btn">Log in</Link>
       </div>
     )
   }
@@ -107,7 +108,7 @@ function Notifications() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
       <h1 className="text-4xl font-bold text-center text-blue-600 mb-2">🔔 Notifications</h1>
-      <p className="text-center text-gray-500 mb-8">Telegram pe naye jobs aur application updates ki alert pao</p>
+      <p className="text-center text-gray-500 mb-8">Get alerts for new jobs and application updates on Telegram</p>
 
       <div className="max-w-2xl mx-auto space-y-6">
         {msg && (
@@ -120,8 +121,8 @@ function Notifications() {
 
         {!loading && status && !status.configured && (
           <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded-lg px-4 py-3">
-            ⚠️ Telegram bot abhi server pe setup nahi hai. Admin ko <code>TELEGRAM_BOT_TOKEN</code> aur{' '}
-            <code>TELEGRAM_BOT_USERNAME</code> <code>.env</code> me daalna hoga.
+            ⚠️ The Telegram bot is not set up on the server yet. The admin needs to add <code>TELEGRAM_BOT_TOKEN</code> and{' '}
+            <code>TELEGRAM_BOT_USERNAME</code> in <code>.env</code>.
           </div>
         )}
 
@@ -145,7 +146,7 @@ function Notifications() {
               {status.connected ? (
                 <div className="flex flex-wrap gap-3">
                   <button onClick={sendTest} disabled={busy === 'test'} className="neon-btn">
-                    {busy === 'test' ? 'Bhej rahe...' : 'Send test message'}
+                    {busy === 'test' ? 'Sending...' : 'Send test message'}
                   </button>
                   <button
                     onClick={disconnect}
@@ -157,36 +158,37 @@ function Notifications() {
                 </div>
               ) : !connect ? (
                 <button onClick={startConnect} disabled={busy === 'connect'} className="neon-btn">
-                  {busy === 'connect' ? 'Ruko...' : 'Connect Telegram'}
+                  {busy === 'connect' ? 'Please wait...' : 'Connect Telegram'}
                 </button>
               ) : (
                 <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-                  <p className="text-sm text-gray-600 font-semibold">3 step me connect karo:</p>
+                  <p className="text-sm text-gray-600 font-semibold">Connect in 3 steps:</p>
                   <ol className="text-sm text-gray-600 list-decimal list-inside space-y-1">
                     <li>
-                      Bot kholo:{' '}
+                      Open the bot:{' '}
                       {connect.deep_link ? (
                         <a
                           href={connect.deep_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 font-semibold hover:underline"
+                          className="text-blue-600 font-semibold hover:underline inline-flex items-center"
                         >
+                          <BrandIcon url="telegram" className="w-4 h-4 mr-1" />
                           @{connect.bot_username}
                         </a>
                       ) : (
                         <span className="font-semibold">@{connect.bot_username}</span>
                       )}
                     </li>
-                    <li>Telegram me <b>Start</b> dabao (ya ye code bhejo)</li>
-                    <li>Wapas aake niche <b>Verify</b> dabao</li>
+                    <li>Press <b>Start</b> in Telegram (or send this code)</li>
+                    <li>Come back and press <b>Verify</b> below</li>
                   </ol>
                   <div className="bg-gray-900 text-white text-center text-2xl font-mono tracking-widest rounded-lg py-3">
                     {connect.code}
                   </div>
                   <div className="flex gap-3">
                     <button onClick={verify} disabled={busy === 'verify'} className="neon-btn flex-1">
-                      {busy === 'verify' ? 'Check kar rahe...' : "I've pressed Start — Verify"}
+                      {busy === 'verify' ? 'Checking...' : "I've pressed Start — Verify"}
                     </button>
                     <button onClick={() => setConnect(null)} className="text-gray-500 text-sm hover:underline">
                       Cancel
@@ -198,22 +200,22 @@ function Notifications() {
 
             {/* Preferences card */}
             <div className="bg-white p-6 rounded-xl shadow">
-              <h2 className="text-xl font-bold mb-4">Kis cheez ki alert chahiye?</h2>
+              <h2 className="text-xl font-bold mb-4">What alerts do you want?</h2>
               <PrefToggle
-                label="Naye jobs post hone par"
-                desc="Jab bhi koi naya job add ho, turant pata chale"
+                label="When new jobs are posted"
+                desc="Get notified instantly whenever a new job is added"
                 on={status.prefs.new_jobs}
                 onClick={() => togglePref('new_jobs')}
               />
               <PrefToggle
-                label="Application status change par"
-                desc="Tumhari tracker wali application ka status badle to alert"
+                label="When application status changes"
+                desc="Get an alert when the status of an application in your tracker changes"
                 on={status.prefs.application_updates}
                 onClick={() => togglePref('application_updates')}
               />
               {!status.connected && (
                 <p className="text-xs text-gray-400 mt-3">
-                  Alerts tab hi aayenge jab Telegram connect hoga.
+                  Alerts will only arrive once Telegram is connected.
                 </p>
               )}
             </div>

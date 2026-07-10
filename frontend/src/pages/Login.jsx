@@ -73,7 +73,7 @@ function Login() {
           <input
             type="email"
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Email likho"
+            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -84,7 +84,7 @@ function Login() {
           <input
             type="password"
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Password likho"
+            placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -109,8 +109,8 @@ function Login() {
         </button>
 
         <p className="text-center text-gray-600 mt-4">
-          Account nahi hai?{' '}
-          <Link to="/register" className="neon-outline px-3 py-1 rounded">Register karo</Link>
+          Don't have an account?{' '}
+          <Link to="/register" className="neon-outline px-3 py-1 rounded">Register</Link>
         </p>
       </div>
     </div>

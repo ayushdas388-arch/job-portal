@@ -1,31 +1,30 @@
-
 :root {
-  --bg: #07060a; /* very dark */
-  --surface: #0b0710;
-  --muted: #9ca3af;
-  --accent: #ff00c8; /* neon-pink */
-  --accent-2: #0b0012; /* blackish-pink (near black) */
-  --neon-glow: 0 8px 40px rgba(255,0,200,0.18), 0 0 20px rgba(255,0,200,0.12);
-  --card-shadow: 0 12px 40px rgba(2,6,23,0.55);
+  --bg: #0f172a; /* Slate 900 */
+  --surface: #1e293b; /* Slate 800 */
+  --muted: #94a3b8; /* Slate 400 */
+  --accent: #10b981; /* Emerald 500 */
+  --accent-2: #064e3b; /* Emerald 900 */
+  --neon-glow: 0 8px 40px rgba(16, 185, 129, 0.18), 0 0 20px rgba(16, 185, 129, 0.12);
+  --card-shadow: 0 12px 40px rgba(2, 6, 23, 0.55);
 }
 
-/* Brand and hero gradients tuned for blackish-pink */
+/* Brand and hero gradients tuned for slate-emerald */
 .brand-gradient {
-  background-image: linear-gradient(90deg, var(--accent-2) 0%, rgba(10,6,14,0.6) 50%, var(--accent) 100%);
+  background-image: linear-gradient(90deg, var(--accent-2) 0%, rgba(15, 23, 42, 0.6) 50%, var(--accent) 100%);
 }
 .hero-gradient {
-  background-image: radial-gradient(circle at 15% 25%, rgba(255,0,200,0.09), transparent 18%), linear-gradient(90deg, var(--accent-2) 0%, var(--accent) 100%);
+  background-image: radial-gradient(circle at 15% 25%, rgba(16, 185, 129, 0.09), transparent 18%), linear-gradient(90deg, var(--accent-2) 0%, var(--accent) 100%);
 }
 
 /* Neon utilities */
 .neon-text {
   color: white;
-  text-shadow: 0 2px 12px rgba(255,0,200,0.14), 0 1px 6px rgba(255,0,200,0.06);
+  text-shadow: 0 2px 12px rgba(16, 185, 129, 0.14), 0 1px 6px rgba(16, 185, 129, 0.06);
 }
 
 .neon-btn {
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  color: #07060a;
+  color: #f8fafc;
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
   font-weight: 700;
@@ -40,21 +39,21 @@
   border-image-source: linear-gradient(90deg, var(--accent), var(--accent-2));
   color: white;
   background: transparent;
-  box-shadow: 0 6px 20px rgba(2,6,23,0.25);
+  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.25);
 }
 
-/* Dark theme overrides to enforce blackish-pink look */
+/* Dark theme overrides to enforce slate-emerald look */
 html, body {
   height: 100%;
   background: var(--bg) fixed !important;
-  color: #e8e6ef !important;
+  color: #f1f5f9 !important;
 }
 
 /* Strong overrides with higher specificity to beat Tailwind utility rules */
 body .bg-white, html .bg-white {
-  background-color: rgba(11,7,16,0.90) !important;
-  color: #eae6f2 !important;
-  border: 1px solid rgba(255,0,200,0.04) !important;
+  background-color: rgba(30, 41, 59, 0.90) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(16, 185, 129, 0.04) !important;
 }
 
 body .bg-gray-50, html .bg-gray-50, .min-h-screen.bg-gray-50 {
@@ -63,24 +62,24 @@ body .bg-gray-50, html .bg-gray-50, .min-h-screen.bg-gray-50 {
 
 /* Card surfaces */
 body .card-strong, body .bg-white.p-6, body .bg-white.p-5 {
-  background: linear-gradient(180deg, rgba(11,7,16,0.94), rgba(6,4,10,0.85)) !important;
-  border: 1px solid rgba(255,0,200,0.06) !important;
-  color: #eeeaf6 !important;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.85)) !important;
+  border: 1px solid rgba(16, 185, 129, 0.06) !important;
+  color: #f8fafc !important;
 }
 
 /* Muted text colors */
-body .text-gray-500 { color: #bdb6c6 !important; }
-body .text-gray-600 { color: #a89db0 !important; }
-body .text-gray-700 { color: #cfc7da !important; }
-body .text-gray-400 { color: #d5cfe0 !important; }
+body .text-gray-500 { color: #94a3b8 !important; }
+body .text-gray-600 { color: #64748b !important; }
+body .text-gray-700 { color: #cbd5e1 !important; }
+body .text-gray-400 { color: #e2e8f0 !important; }
 
 /* Inputs and borders */
 body .border-gray-300 { border-color: rgba(255,255,255,0.06) !important; background: rgba(255,255,255,0.02) !important; }
-body input, body textarea, body select { color: #f4eef9 !important; }
+body input, body textarea, body select { color: #f8fafc !important; }
 
 /* Buttons and clickable controls */
-body .bg-blue-600 { background: linear-gradient(90deg, var(--accent), rgba(255,0,200,0.85)) !important; color: #07060a !important; }
-body .bg-white:not(.neon-btn) { background-color: rgba(255,255,255,0.03) !important; color: #eae6f2 !important; }
+body .bg-blue-600 { background: linear-gradient(90deg, var(--accent), rgba(16, 185, 129, 0.85)) !important; color: #022c22 !important; }
+body .bg-white:not(.neon-btn) { background-color: rgba(255,255,255,0.03) !important; color: #f8fafc !important; }
 
 /* Ensure neon-outline is visible on dark bg */
 .neon-outline { background: rgba(255,255,255,0.02); }
@@ -111,6 +110,11 @@ body {
 
 /* ---- Print: show only the resume preview on a clean white page ---- */
 @media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+  
   body, html, #root, .min-h-screen {
     background: #ffffff !important;
   }
@@ -119,20 +123,24 @@ body {
     visibility: hidden !important;
   }
 
-  #resume-preview, #resume-preview * {
-    visibility: visible !important;
-    color: #1f2937 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
+  /* Force browsers to print background colors and images */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  #resume-preview {
+  .print-resume-wrapper, .print-resume-wrapper * {
+    visibility: visible !important;
+    box-shadow: none !important;
+  }
+
+  .print-resume-wrapper {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
+    margin: 0 !important;
     padding: 0 !important;
-    background: #ffffff !important;
     border: none !important;
   }
 
@@ -140,4 +148,3 @@ body {
     display: none !important;
   }
 }
-

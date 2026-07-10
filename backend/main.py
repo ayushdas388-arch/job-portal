@@ -1,10 +1,15 @@
 ﻿from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from config import CORS_ORIGINS
 from database import close_database, ensure_indexes, ping_database
+from rate_limit import limiter
 from routes import ai, applications, auth, dashboard, eligibility, jobs, notifications, prep
 
 
@@ -16,12 +21,36 @@ async def lifespan(_app: FastAPI):
     close_database()
 
 
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+}
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add a few defensive HTTP headers to every response."""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        for header, value in SECURITY_HEADERS.items():
+            response.headers.setdefault(header, value)
+        return response
+
+
 app = FastAPI(
     title="Job Portal API",
     description="Job Portal API with MongoDB",
     version="1.1.0",
     lifespan=lifespan,
 )
+
+# Rate limiting (in-memory, per client IP)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

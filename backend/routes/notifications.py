@@ -29,18 +29,10 @@ CODE_TTL_MINUTES = 30
 _CODE_ALPHABET = string.ascii_uppercase + string.digits
 
 
-# ---------------------------------------------------------------------------
-# Models
-# ---------------------------------------------------------------------------
-
 class PrefsUpdate(BaseModel):
     new_jobs: Optional[bool] = None
     application_updates: Optional[bool] = None
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 def _generate_code() -> str:
     return "".join(secrets.choice(_CODE_ALPHABET) for _ in range(6))
@@ -65,7 +57,6 @@ async def _get_settings(user_id) -> Optional[dict]:
 
 
 def _extract_chat_for_code(updates: list, code: str) -> Optional[dict]:
-    """Find the chat that sent our link code (as '/start CODE' or plain 'CODE')."""
     wanted = code.strip().upper()
     candidates = {wanted, f"/START {wanted}"}
     match = None
@@ -75,13 +66,9 @@ def _extract_chat_for_code(updates: list, code: str) -> Optional[dict]:
             continue
         text = (message.get("text") or "").strip().upper()
         if text in candidates:
-            match = message.get("chat")  # keep last match (most recent)
+            match = message.get("chat")
     return match
 
-
-# ---------------------------------------------------------------------------
-# Endpoints
-# ---------------------------------------------------------------------------
 
 @router.get("/status")
 async def get_status(current_user: dict = Depends(get_current_user)):
@@ -94,7 +81,7 @@ async def connect_telegram(current_user: dict = Depends(get_current_user)):
     if not telegram_service.is_configured():
         raise HTTPException(
             status_code=503,
-            detail="Telegram bot abhi setup nahi hai. Admin ko TELEGRAM_BOT_TOKEN set karna hoga.",
+            detail="The Telegram bot is not set up yet. The admin needs to set TELEGRAM_BOT_TOKEN.",
         )
 
     code = _generate_code()
@@ -123,18 +110,18 @@ async def verify_telegram(current_user: dict = Depends(get_current_user)):
     doc = await _get_settings(current_user["_id"])
     code = (doc or {}).get("link_code")
     if not doc or not code:
-        raise HTTPException(status_code=400, detail="Pehle 'Connect' karke code lein.")
+        raise HTTPException(status_code=400, detail="Please click 'Connect' first to get a code.")
 
     expires = doc.get("link_code_expires")
     if expires and expires.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="Code expire ho gaya. Dobara Connect karein.")
+        raise HTTPException(status_code=400, detail="Code expired. Please click Connect again.")
 
     updates = await telegram_service.get_updates()
     chat = _extract_chat_for_code(updates, code)
     if not chat:
         raise HTTPException(
             status_code=404,
-            detail="Abhi tak message nahi mila. Bot pe Start dabaya? Fir Verify karein.",
+            detail="No message received yet. Did you press Start on the bot? Then click Verify.",
         )
 
     chat_id = chat.get("id")
@@ -149,8 +136,7 @@ async def verify_telegram(current_user: dict = Depends(get_current_user)):
 
     await telegram_service.send_message(
         chat_id,
-        f"✅ <b>Connected!</b>\nHi {html.escape(str(name))}, JobPortal notifications "
-        f"ab yahin milenge. 🔔",
+        f"<b>Connected!</b>\nHi {html.escape(str(name))}, you'll receive JobPortal notifications here.",
     )
 
     doc = await _get_settings(current_user["_id"])
@@ -172,14 +158,14 @@ async def send_test(current_user: dict = Depends(get_current_user)):
     doc = await _get_settings(current_user["_id"])
     chat_id = (doc or {}).get("telegram_chat_id")
     if not chat_id:
-        raise HTTPException(status_code=400, detail="Pehle Telegram connect karein.")
+        raise HTTPException(status_code=400, detail="Please connect Telegram first.")
 
     ok = await telegram_service.send_message(
         chat_id,
-        "🔔 <b>Test notification</b>\nJobPortal se sab kuch sahi chal raha hai! 🎉",
+        "<b>Test notification</b>\nEverything is working correctly with JobPortal.",
     )
     if not ok:
-        raise HTTPException(status_code=502, detail="Message bhej nahi paye. Dobara try karein.")
+        raise HTTPException(status_code=502, detail="Could not send the message. Please try again.")
     return {"sent": True}
 
 
@@ -190,7 +176,7 @@ async def update_preferences(
 ):
     updates = changes.model_dump(exclude_unset=True)
     if not updates:
-        raise HTTPException(status_code=400, detail="Koi preference nahi di gayi.")
+        raise HTTPException(status_code=400, detail="No preferences were provided.")
 
     doc = await _get_settings(current_user["_id"])
     prefs = {**_prefs_of(doc), **updates}
@@ -203,12 +189,7 @@ async def update_preferences(
     return _status_payload(doc)
 
 
-# ---------------------------------------------------------------------------
-# Broadcast helpers — called (fire-and-forget) from other routers
-# ---------------------------------------------------------------------------
-
 async def notify_new_job(job: dict) -> None:
-    """Message every linked user (with new_jobs on) about a freshly posted job."""
     if not telegram_service.is_configured():
         return
     try:
@@ -216,11 +197,11 @@ async def notify_new_job(job: dict) -> None:
         company = html.escape(str(job.get("company", "")))
         location = html.escape(str(job.get("location", "")))
         text = (
-            f"🆕 <b>New Job Posted</b>\n\n"
+            f"<b>New Job Posted</b>\n\n"
             f"<b>{title}</b>\n"
-            f"🏢 {company or '—'}\n"
-            f"📍 {location or 'Location N/A'}\n\n"
-            f"JobPortal pe jaake apply karo! 🚀"
+            f"Company: {company or 'N/A'}\n"
+            f"Location: {location or 'N/A'}\n\n"
+            f"Apply on JobPortal now!"
         )
         cursor = notification_settings_collection.find(
             {"telegram_chat_id": {"$ne": None}}
@@ -234,7 +215,6 @@ async def notify_new_job(job: dict) -> None:
 
 
 async def notify_application_update(user_id, company: str, role: str, new_status: str) -> None:
-    """Ping a single user when their own application's status changes."""
     if not telegram_service.is_configured():
         return
     try:
@@ -243,20 +223,19 @@ async def notify_application_update(user_id, company: str, role: str, new_status
         )
         if not doc or not _prefs_of(doc).get("application_updates"):
             return
-        company_txt = html.escape(str(company or "")) or "—"
+        company_txt = html.escape(str(company or "")) or "N/A"
         role_txt = html.escape(str(role or ""))
         status_txt = html.escape(str(new_status or ""))
-        heading = f"{company_txt}" + (f" — {role_txt}" if role_txt else "")
+        heading = f"{company_txt}" + (f" - {role_txt}" if role_txt else "")
         await telegram_service.send_message(
             doc["telegram_chat_id"],
-            f"📋 <b>Application Update</b>\n\n{heading}\nStatus: <b>{status_txt}</b>",
+            f"<b>Application Update</b>\n\n{heading}\nStatus: <b>{status_txt}</b>",
         )
     except Exception as exc:
         logger.warning("notify_application_update error: %s", exc)
 
 
 def fire_and_forget(coro) -> None:
-    """Schedule a broadcast without blocking the request; swallow task errors."""
     task = asyncio.create_task(coro)
 
     def _log_result(t: asyncio.Task) -> None:

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import API from '../api/axios'
+import BrandIcon from '../components/BrandIcon'
 
 const TABS = [
-  { key: 'resources', label: '📚 Resources' },
-  { key: 'plan', label: '🗓️ Study Plan' },
-  { key: 'quiz', label: '📝 Practice Quiz' },
+  { key: 'resources', label: 'Resources' },
+  { key: 'plan', label: 'Study Plan' },
+  { key: 'quiz', label: 'Practice Quiz' },
+  { key: 'video', label: 'Video Courses' },
 ]
 
 function PreparationHub() {
@@ -12,8 +14,8 @@ function PreparationHub() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
-      <h1 className="text-4xl font-bold text-center text-blue-600 mb-2">🎯 Preparation Hub</h1>
-      <p className="text-center text-gray-500 mb-8">Resources, AI study plan aur practice quiz — ek hi jagah</p>
+      <h1 className="text-4xl font-bold text-center text-blue-600 mb-2">Preparation Hub</h1>
+      <p className="text-center text-gray-500 mb-8">Resources, an AI study plan, and a practice quiz - all in one place.</p>
 
       <div className="max-w-4xl mx-auto">
         <div className="flex gap-2 mb-6 justify-center flex-wrap">
@@ -33,12 +35,30 @@ function PreparationHub() {
         {tab === 'resources' && <Resources />}
         {tab === 'plan' && <StudyPlan />}
         {tab === 'quiz' && <Quiz />}
+        {tab === 'video' && <VideoCourses />}
       </div>
     </div>
   )
 }
 
-/* ---------------------------------------------------------------- Resources */
+function VideoCourses() {
+  return (
+    <div className="bg-white p-12 rounded-xl shadow-lg text-center border-t-4 border-blue-600">
+      <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+        <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+        </svg>
+      </div>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">Video Courses</h2>
+      <p className="text-gray-500 max-w-md mx-auto mb-6">
+        We are partnering with top educators to bring you high-quality video lectures for various competitive exams and tech stacks.
+      </p>
+      <span className="inline-block bg-blue-100 text-blue-700 font-bold px-4 py-2 rounded-full text-sm">
+        Coming Soon
+      </span>
+    </div>
+  )
+}
 
 function Resources() {
   const [library, setLibrary] = useState([])
@@ -85,9 +105,10 @@ function Resources() {
                   href={r.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-gray-700 hover:text-blue-600 hover:underline"
+                  className="text-sm text-gray-700 hover:text-blue-600 hover:underline flex items-center gap-1.5"
                 >
-                  🔗 {r.name}
+                  <BrandIcon url={r.link} name={r.name} className="w-4 h-4 shrink-0" />
+                  {r.name}
                 </a>
               </li>
             ))}
@@ -97,8 +118,6 @@ function Resources() {
     </div>
   )
 }
-
-/* --------------------------------------------------------------- StudyPlan */
 
 const inputClass =
   'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400'
@@ -111,7 +130,7 @@ function StudyPlan() {
 
   const generate = async () => {
     if (!form.target.trim()) {
-      setErr('Target likho (jaise "SSC CGL" ya "Frontend Interview").')
+      setErr('Enter a target (for example, "SSC CGL" or "Frontend Interview").')
       return
     }
     setErr('')
@@ -124,7 +143,7 @@ function StudyPlan() {
       })
       setPlan(data)
     } catch (error) {
-      setErr(error?.response?.data?.detail?.[0]?.msg || 'Plan generate nahi hua.')
+      setErr(error?.response?.data?.detail?.[0]?.msg || 'Could not generate the study plan.')
     } finally {
       setLoading(false)
     }
@@ -134,7 +153,7 @@ function StudyPlan() {
     <div className="space-y-4">
       <div className="bg-white p-6 rounded-xl shadow space-y-3">
         <div className="grid md:grid-cols-2 gap-3">
-          <label className="text-xs text-gray-500">Kis cheez ki tayari?
+          <label className="text-xs text-gray-500">What are you preparing for?
             <input
               className={inputClass}
               placeholder="SSC CGL / Bank PO / React Interview..."
@@ -142,7 +161,7 @@ function StudyPlan() {
               onChange={(e) => setForm({ ...form, target: e.target.value })}
             />
           </label>
-          <label className="text-xs text-gray-500">Exam / target date (optional)
+          <label className="text-xs text-gray-500">Exam or target date (optional)
             <input
               type="date"
               className={inputClass}
@@ -150,7 +169,7 @@ function StudyPlan() {
               onChange={(e) => setForm({ ...form, exam_date: e.target.value })}
             />
           </label>
-          <label className="text-xs text-gray-500">Roz kitne ghante?
+          <label className="text-xs text-gray-500">How many hours per day?
             <input
               type="number"
               min="1"
@@ -174,16 +193,16 @@ function StudyPlan() {
         </div>
         {err && <p className="text-sm text-red-500">{err}</p>}
         <button onClick={generate} disabled={loading} className="neon-btn w-full">
-          {loading ? 'Ban raha hai...' : 'Generate Study Plan'}
+          {loading ? 'Generating...' : 'Generate Study Plan'}
         </button>
       </div>
 
       {plan && (
         <div className="bg-white p-6 rounded-xl shadow">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">{plan.target} — {plan.weeks} weeks</h3>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${plan.source === 'gemini' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-500'}`}>
-              {plan.source === 'gemini' ? '✨ AI' : 'Basic'}
+            <h3 className="text-lg font-bold">{plan.target} - {plan.weeks} weeks</h3>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${plan.source === 'gemini' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-500'}`}>
+              {plan.source === 'gemini' ? 'AI' : 'Basic'}
             </span>
           </div>
           {plan.summary && <p className="text-sm text-gray-600 mb-4">{plan.summary}</p>}
@@ -207,18 +226,17 @@ function StudyPlan() {
   )
 }
 
-/* -------------------------------------------------------------------- Quiz */
-
 function Quiz() {
   const [topic, setTopic] = useState('')
+  const [difficulty, setDifficulty] = useState('medium')
   const [quiz, setQuiz] = useState(null)
-  const [answers, setAnswers] = useState({}) // index -> chosen option index
+  const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
 
   const generate = async () => {
     if (!topic.trim()) {
-      setErr('Topic likho (jaise "Aptitude", "Python", "SQL").')
+      setErr('Enter a topic (for example, "Aptitude", "Python", or "SQL").')
       return
     }
     setErr('')
@@ -226,17 +244,18 @@ function Quiz() {
     setQuiz(null)
     setAnswers({})
     try {
-      const { data } = await API.post('/prep/quiz', { topic, count: 5 })
+      const seed = Math.random().toString(36).substring(7)
+      const { data } = await API.post('/prep/quiz', { topic, count: 30, difficulty, seed })
       setQuiz(data)
     } catch (error) {
-      setErr(error?.response?.data?.detail?.[0]?.msg || 'Quiz generate nahi hua.')
+      setErr(error?.response?.data?.detail?.[0]?.msg || 'Could not generate the quiz.')
     } finally {
       setLoading(false)
     }
   }
 
   const choose = (qi, oi) => {
-    if (answers[qi] !== undefined) return // lock after answering
+    if (answers[qi] !== undefined) return
     setAnswers((a) => ({ ...a, [qi]: oi }))
   }
 
@@ -246,21 +265,34 @@ function Quiz() {
   const answeredCount = Object.keys(answers).length
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-6 rounded-xl shadow">
-        <div className="flex gap-2">
+    <div className="space-y-6">
+      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-8 rounded-2xl shadow-md border border-indigo-100">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-indigo-900 mb-2">Practice Quiz Arena</h2>
+          <p className="text-indigo-700">Test your knowledge with 30+ randomized questions across different domains. Select your topic and difficulty to begin.</p>
+        </div>
+        <div className="flex flex-col md:flex-row gap-3">
           <input
-            className={inputClass}
+            className={`${inputClass} flex-1 border-indigo-200 focus:border-indigo-500`}
             placeholder="Topic: Aptitude / Reasoning / Python / SQL / DBMS..."
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && generate()}
           />
-          <button onClick={generate} disabled={loading} className="neon-btn shrink-0">
-            {loading ? '...' : 'Start Quiz'}
+          <select 
+            className={`${inputClass} w-full md:w-48 border-indigo-200 focus:border-indigo-500`}
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+          >
+            <option value="easy">Easy (Beginner)</option>
+            <option value="medium">Medium (Intermediate)</option>
+            <option value="hard">Hard (Advanced)</option>
+          </select>
+          <button onClick={generate} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-md shrink-0">
+            {loading ? 'Generating 30 Qs...' : 'Start Quiz'}
           </button>
         </div>
-        {err && <p className="text-sm text-red-500 mt-2">{err}</p>}
+        {err && <p className="text-sm text-red-500 mt-3 bg-red-50 p-2 rounded">{err}</p>}
       </div>
 
       {quiz && (
@@ -299,18 +331,32 @@ function Quiz() {
                         className={`w-full text-left text-sm border rounded-lg px-3 py-2 transition ${cls}`}
                       >
                         {String.fromCharCode(65 + oi)}. {opt}
-                        {answered && oi === q.answer_index && ' ✅'}
-                        {answered && oi === chosen && oi !== q.answer_index && ' ❌'}
+                        {answered && oi === q.answer_index && ' (Correct)'}
+                        {answered && oi === chosen && oi !== q.answer_index && ' (Incorrect)'}
                       </button>
                     )
                   })}
                 </div>
                 {answered && q.explanation && (
-                  <p className="text-xs text-gray-500 mt-2">💡 {q.explanation}</p>
+                  <p className="text-xs text-gray-500 mt-2">Explanation: {q.explanation}</p>
                 )}
               </div>
             )
           })}
+          
+          {answeredCount === quiz.questions.length && quiz.questions.length > 0 && (
+            <div className="pt-6 border-t border-gray-200 flex flex-col items-center">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Quiz Completed!</h3>
+              <p className="text-gray-600 mb-6">You scored {score} out of {quiz.questions.length}.</p>
+              <button 
+                onClick={generate} 
+                disabled={loading}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-colors"
+              >
+                {loading ? 'Generating new set...' : 'Retake with New Questions'}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

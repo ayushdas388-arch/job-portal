@@ -1,3 +1,4 @@
+import Layout from './components/Layout';
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
@@ -13,28 +14,44 @@ import Notifications from './pages/Notifications'
 import PreparationHub from './pages/PreparationHub'
 import EligibilityChecker from './pages/EligibilityChecker'
 import Admin from './pages/Admin'
+import ProtectedRoute from './components/ProtectedRoute'
+import GovtUpdates from './pages/GovtUpdates'
+import AIInterview from './pages/AIInterview'
+import CareerRoadmap from './pages/CareerRoadmap'
 
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/jobs" element={<Jobs/>} />
-        <Route path="/login" element={<Login/>} />
-        <Route path="/register" element={<Register/>} />
-        <Route path="/ai-match" element={<AIMatch/>} />
-        <Route path="/resume-builder" element={<ResumeBuilder/>} />
-        <Route path="/skill-gap" element={<SkillGap/>} />
-        <Route path="/dashboard" element={<Dashboard/>} />
-        <Route path="/applications" element={<ApplicationTracker/>} />
-        <Route path="/notifications" element={<Notifications/>} />
-        <Route path="/prep" element={<PreparationHub/>} />
-        <Route path="/eligibility" element={<EligibilityChecker/>} />
-        <Route path="/admin" element={<Admin/>} />
-      </Routes>
+      {/* Purana Navbar hata kar naya Layout lagaya hai */}
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/ai-match" element={<AIMatch />} />
+          <Route path="/resume-builder" element={<ResumeBuilder />} />
+          <Route path="/skill-gap" element={<SkillGap />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/applications" element={<ApplicationTracker />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/prep" element={<PreparationHub />} />
+          <Route path="/updates" element={<GovtUpdates />} />
+          <Route path="/ai-interview" element={<AIInterview />} />
+          <Route path="/roadmap" element={<CareerRoadmap />} />
+          <Route path="/eligibility" element={<EligibilityChecker />} />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute roles={['company', 'admin']}>
+                <Admin />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </Layout>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

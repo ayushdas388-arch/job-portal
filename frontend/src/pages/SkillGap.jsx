@@ -27,7 +27,7 @@ function SkillGap() {
 
   const handleAnalyze = async () => {
     if (!targetRole.trim()) {
-      alert('Pehle target role likhein (jaise "Frontend Developer").')
+      alert('Please enter a target role first (for example, "Frontend Developer").')
       return
     }
     setLoading(true)
@@ -39,7 +39,7 @@ function SkillGap() {
       setResult(data)
     } catch (error) {
       console.error('Skill gap error:', error)
-      alert('Analysis fail ho gaya. Backend logs check karein.')
+      alert('Analysis failed. Please check the backend logs.')
     } finally {
       setLoading(false)
     }
@@ -52,13 +52,13 @@ function SkillGap() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
-      <h1 className="text-4xl font-bold text-center text-blue-600 mb-2">🎯 Skill Gap Analysis</h1>
-      <p className="text-center text-gray-500 mb-8">Apni skills daalo, target role batao — AI batayega kya seekhna hai</p>
+      <h1 className="text-4xl font-bold text-center text-blue-600 mb-2">Skill Gap Analysis</h1>
+      <p className="text-center text-gray-500 mb-8">
+        Add your skills, choose a target role, and see what you should learn next.
+      </p>
 
       <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
-        {/* ---------------- Input ---------------- */}
         <div className="bg-white p-6 rounded-xl shadow space-y-6">
-          {/* Target role */}
           <section>
             <h2 className="text-xl font-bold mb-3">Target Role</h2>
             <input
@@ -69,13 +69,12 @@ function SkillGap() {
             />
           </section>
 
-          {/* Skills */}
           <section>
-            <h2 className="text-xl font-bold mb-3">Aapki Current Skills</h2>
+            <h2 className="text-xl font-bold mb-3">Your Current Skills</h2>
             <div className="flex gap-2 mb-3">
               <input
                 className={inputClass}
-                placeholder="Skill likho aur Enter dabao"
+                placeholder="Type a skill and press Enter"
                 value={skillInput}
                 onChange={(e) => setSkillInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -93,7 +92,7 @@ function SkillGap() {
                 {skills.map((s) => (
                   <span key={s} className="flex items-center gap-1 bg-blue-50 border border-blue-300 text-blue-700 rounded-full px-3 py-1 text-sm">
                     {s}
-                    <button onClick={() => removeSkill(s)} className="text-blue-400 hover:text-red-500">✕</button>
+                    <button onClick={() => removeSkill(s)} className="text-blue-400 hover:text-red-500">x</button>
                   </span>
                 ))}
               </div>
@@ -114,15 +113,13 @@ function SkillGap() {
           </section>
 
           <button onClick={handleAnalyze} disabled={loading} className="w-full neon-btn">
-            {loading ? '⏳ Analyse ho raha hai...' : '🚀 Analyse Skill Gap'}
+            {loading ? 'Analyzing...' : 'Analyze Skill Gap'}
           </button>
         </div>
 
-        {/* ---------------- Result ---------------- */}
         <div>
           {result ? (
             <div className="bg-white p-6 rounded-xl shadow space-y-6">
-              {/* Readiness */}
               <div>
                 <div className="flex justify-between items-end mb-1">
                   <h2 className="text-lg font-bold">Job Readiness for <span className="text-blue-600">{result.target_role}</span></h2>
@@ -133,9 +130,8 @@ function SkillGap() {
                 </div>
               </div>
 
-              {/* Matched */}
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wide text-green-600 mb-2">✅ Skills You Have</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wide text-green-600 mb-2">Skills You Have</h3>
                 {result.matched_skills?.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {result.matched_skills.map((s, i) => (
@@ -143,13 +139,12 @@ function SkillGap() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400">In matching skills nahi milin.</p>
+                  <p className="text-sm text-gray-400">No matching skills were found.</p>
                 )}
               </div>
 
-              {/* Missing */}
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wide text-red-500 mb-2">📚 Skills To Learn</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wide text-red-500 mb-2">Skills To Learn</h3>
                 {result.missing_skills?.length > 0 ? (
                   <div className="space-y-3">
                     {result.missing_skills.map((m, i) => (
@@ -157,17 +152,16 @@ function SkillGap() {
                         <p className="font-semibold text-sm text-gray-800">{m.skill}</p>
                         {m.why && <p className="text-xs text-gray-500 mt-1">{m.why}</p>}
                         {m.resource && (
-                          <p className="text-xs text-blue-600 mt-1">👉 {m.resource}</p>
+                          <p className="text-xs text-blue-600 mt-1">Recommended resource: {m.resource}</p>
                         )}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-green-600">🎉 Koi major gap nahi — aap ready ho!</p>
+                  <p className="text-sm text-green-600">No major gaps found - you look ready.</p>
                 )}
               </div>
 
-              {/* Advice */}
               {result.advice && (
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
                   <p className="text-sm text-gray-700">{result.advice}</p>
@@ -176,7 +170,7 @@ function SkillGap() {
             </div>
           ) : (
             <div className="bg-white p-8 rounded-xl shadow text-center text-gray-400 flex items-center justify-center min-h-[300px]">
-              Analysis result yahan dikhega
+              Your analysis result will appear here.
             </div>
           )}
         </div>

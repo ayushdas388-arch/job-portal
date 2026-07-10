@@ -4,6 +4,8 @@ function Navbar() {
   const navigate = useNavigate()
   const name = localStorage.getItem('name')
   const token = localStorage.getItem('token')
+  const role = (localStorage.getItem('role') || '').toLowerCase()
+  const canManageJobs = role === 'company' || role === 'admin'
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -28,8 +30,10 @@ function Navbar() {
               <span className="text-white/90">Hi, {name}!</span>
               <Link to="/dashboard" className="hover:text-white/90 transition">Dashboard</Link>
               <Link to="/applications" className="hover:text-white/90 transition">Applications</Link>
-              <Link to="/notifications" className="hover:text-white/90 transition">🔔</Link>
-              <Link to="/admin" className="hover:text-white/90 transition">Admin</Link>
+              <Link to="/notifications" className="hover:text-white/90 transition">Alerts</Link>
+              {canManageJobs && (
+                <Link to="/admin" className="hover:text-white/90 transition">Admin</Link>
+              )}
               <button
                 onClick={handleLogout}
                 className="neon-btn"

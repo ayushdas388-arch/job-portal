@@ -1,4 +1,4 @@
-﻿import re
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
@@ -13,6 +13,7 @@ from pymongo.errors import DuplicateKeyError
 import captcha_service
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 from database import users_collection
+from rate_limit import limiter
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -21,13 +22,15 @@ EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
 
 class UserRegister(BaseModel):
-    name: str = Field(min_length=2, max_length=80)
+    first_name: str = Field(min_length=2, max_length=40)
+    last_name: str = Field(min_length=2, max_length=40)
     email: str = Field(min_length=5, max_length=254)
+    phone: str = Field(min_length=10, max_length=15)
     password: str = Field(min_length=8, max_length=72)
     role: Literal["jobseeker", "company"] = "jobseeker"
     captcha_token: Optional[str] = Field(default=None, max_length=4096)
 
-    @field_validator("name", mode="before")
+    @field_validator("first_name", "last_name", mode="before")
     @classmethod
     def clean_name(cls, value: str) -> str:
         return " ".join(value.split())
@@ -144,6 +147,7 @@ can_manage_jobs = require_roles("company", "admin")
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/hour")
 async def register(user: UserRegister, request: Request):
     await _ensure_captcha(user.captcha_token, request)
 
@@ -155,8 +159,11 @@ async def register(user: UserRegister, request: Request):
         raise HTTPException(status_code=409, detail="Email already registered")
 
     new_user = {
-        "name": user.name,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "name": f"{user.first_name} {user.last_name}",
         "email": user.email,
+        "phone": user.phone,
         "password": hash_password(user.password),
         "role": user.role,
         "created_at": datetime.now(timezone.utc),
@@ -169,6 +176,7 @@ async def register(user: UserRegister, request: Request):
 
 
 @router.post("/login")
+@limiter.limit("5/minute")
 async def login(user: UserLogin, request: Request):
     await _ensure_captcha(user.captcha_token, request)
 

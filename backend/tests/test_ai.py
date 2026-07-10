@@ -4,50 +4,40 @@ from unittest.mock import patch
 from routes import ai
 
 
-SAMPLE_JOBS = [
-    {
-        "title": "Python Developer",
-        "company": "Acme",
-        "location": "Remote",
-        "required_skills": ["Python", "FastAPI", "MongoDB"],
-        "description": "",
-    },
-    {
-        "title": "Frontend Developer",
-        "company": "Beta",
-        "location": "Delhi",
-        "required_skills": ["React", "JavaScript"],
-        "description": "",
-    },
-]
-
-
 class AIRouteTests(unittest.IsolatedAsyncioTestCase):
     def test_strip_json_fence_removes_markdown_wrapper(self):
         payload = """```json
-[
-  {"job_number": 1, "match_percent": 90, "reason": "Strong fit"}
-]
+{
+  "summary": "ok"
+}
 ```"""
         self.assertEqual(
             ai.strip_json_fence(payload),
-            '[\n  {"job_number": 1, "match_percent": 90, "reason": "Strong fit"}\n]',
+            '{\n  "summary": "ok"\n}',
         )
 
-    def test_fallback_match_extracts_resume_skills(self):
-        resume_text = "Resume:\nWorked on Python APIs with FastAPI and MongoDB."
-        results = ai.fallback_match(resume_text, SAMPLE_JOBS)
+    def test_extract_known_skills_detects_resume_keywords(self):
+        resume_text = "Worked with Python, FastAPI, React and Docker on production apps."
+        skills = ai.extract_known_skills(resume_text)
 
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["title"], "Python Developer")
-        self.assertEqual(results[0]["match_percent"], 100)
+        self.assertIn("Python", skills)
+        self.assertIn("FastAPI", skills)
+        self.assertIn("React", skills)
 
-    async def test_gemini_match_uses_fallback_when_client_unavailable(self):
+    def test_fallback_external_match_returns_live_search_cards(self):
+        result = ai.fallback_external_match("Skills: Python, FastAPI, SQL", ["Python", "FastAPI", "SQL"])
+
+        self.assertTrue(result["matched_jobs"])
+        self.assertTrue(result["external_sources"])
+        self.assertIn("Backend Developer", result["recommended_roles"])
+        self.assertIn("url", result["matched_jobs"][0])
+
+    async def test_gemini_external_match_uses_fallback_when_client_unavailable(self):
         with patch.object(ai, "client", None), patch.object(ai, "GEMINI_API_KEY", ""):
-            results = await ai.gemini_match("Skills: React, JavaScript", SAMPLE_JOBS)
+            result = await ai.gemini_external_match("Skills: React, JavaScript", ["React", "JavaScript"])
 
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["title"], "Frontend Developer")
+        self.assertTrue(result["matched_jobs"])
+        self.assertIn("Frontend Developer", result["recommended_roles"])
 
 
 if __name__ == "__main__":

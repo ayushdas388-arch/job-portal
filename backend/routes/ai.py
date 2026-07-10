@@ -1,21 +1,62 @@
-﻿from fastapi import APIRouter, UploadFile, File, HTTPException
-from pydantic import BaseModel, Field
-from database import jobs_collection
-from typing import List, Optional
-import pdfplumber
+from __future__ import annotations
+
 import io
 import json
 import re
+from typing import List, Optional
+
+import pdfplumber
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from pydantic import BaseModel, Field
+
+from config import GEMINI_API_KEY
+from external_jobs import build_search_links, normalize_keywords, normalize_query
 
 try:
     from google import genai
 except ImportError:
     genai = None
-from config import GEMINI_API_KEY
 
 client = None
 
 router = APIRouter(prefix="/ai", tags=["AI"])
+
+ROLE_SKILLS = {
+    "Frontend Developer": ["HTML", "CSS", "JavaScript", "React", "TypeScript", "UI/UX"],
+    "Backend Developer": ["Python", "Node.js", "FastAPI", "Django", "SQL", "MongoDB"],
+    "Full Stack Developer": ["React", "Node.js", "JavaScript", "SQL", "MongoDB", "Git"],
+    "Data Analyst": ["SQL", "Excel", "Power BI", "Tableau", "Python", "Data Analysis"],
+    "Data Scientist": ["Python", "Machine Learning", "Statistics", "Pandas", "SQL", "Data Science"],
+    "DevOps Engineer": ["Docker", "Kubernetes", "AWS", "CI/CD", "Linux", "Git"],
+    "Cloud Engineer": ["AWS", "Azure", "Docker", "Kubernetes", "Linux"],
+    "Mobile Developer": ["Flutter", "React Native", "Android Development", "iOS Development", "Kotlin", "Swift"],
+    "UI/UX Designer": ["Figma", "Adobe XD", "UI/UX", "Photoshop", "Illustrator"],
+    "Digital Marketer": ["SEO", "Digital Marketing", "Content Writing", "Analytics", "Sales"],
+    "Accountant": ["Accounting", "Tally", "GST", "Finance", "Excel"],
+}
+
+EXTRA_SKILLS = [
+    "Java", "C++", "C#", "PHP", "Ruby", "Swift", "Kotlin", "Angular", "Vue.js",
+    "Next.js", "Flask", "Spring Boot", "Express.js", "Deep Learning", "R",
+    "Google Cloud", "Cybersecurity", "Blockchain", "Web3", "Solidity", "Unity",
+    "Unreal Engine", "Communication", "Project Management", "Agile", "Scrum",
+    "Product Management", "Recruitment", "Payroll", "Reasoning", "Current Affairs",
+    "Quantitative Aptitude", "UPSC Preparation", "SSC Preparation", "Banking Preparation",
+    "Teaching", "B.Ed", "CTET", "Typing", "MS Office", "AutoCAD", "Electrical",
+    "Mechanical", "Civil Engineering", "Nursing", "Pharmacy", "Medical Coding",
+    "Legal", "Law", "Photography", "Journalism", "Media",
+]
+
+KNOWN_SKILLS = sorted(
+    {
+        skill
+        for skills in ROLE_SKILLS.values()
+        for skill in skills
+    }.union(EXTRA_SKILLS),
+    key=len,
+    reverse=True,
+)
+
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     text = ""
@@ -45,124 +86,178 @@ def strip_json_fence(text: str) -> str:
     return cleaned.strip()
 
 
-def extract_skills_from_text(text: str, jobs: list) -> list[str]:
+def extract_known_skills(text: str) -> list[str]:
     text_lower = text.lower()
-    detected_skills = []
+    detected = []
     seen = set()
 
-    for job in jobs:
-        for skill in job.get("required_skills", []):
-            normalized_skill = skill.strip()
-            if not normalized_skill:
+    for skill in KNOWN_SKILLS:
+        key = skill.lower()
+        if key in seen:
+            continue
+        if re.search(rf"(?<!\w){re.escape(key)}(?!\w)", text_lower):
+            detected.append(skill)
+            seen.add(key)
+
+    return detected
+
+
+def infer_roles_from_skills(skills: list[str], limit: int = 3) -> list[dict]:
+    cleaned = normalize_keywords(skills)
+    if not cleaned:
+        return []
+
+    skill_keys = {skill.lower() for skill in cleaned}
+    suggestions = []
+
+    for role, role_skills in ROLE_SKILLS.items():
+        matched = [skill for skill in role_skills if skill.lower() in skill_keys]
+        if not matched:
+            continue
+
+        match_percent = min(99, int(45 + (len(matched) / len(role_skills) * 55)))
+        suggestions.append(
+            {
+                "title": role,
+                "skills": matched,
+                "match_percent": match_percent,
+                "reason": f"Based on your overlap with {', '.join(matched[:4])}.",
+            }
+        )
+
+    suggestions.sort(key=lambda item: item["match_percent"], reverse=True)
+    if suggestions:
+        return suggestions[:limit]
+
+    query = normalize_query(cleaned)
+    return [
+        {
+            "title": query or "General job search",
+            "skills": cleaned[:3],
+            "match_percent": 60,
+            "reason": "Built from the strongest keywords found in your profile.",
+        }
+    ]
+
+
+def build_external_match_cards(searches: list[dict], skills: list[str]) -> list[dict]:
+    cards = []
+    seen = set()
+
+    for search in searches[:3]:
+        query_parts = [search["title"], *search.get("skills", [])[:2]]
+        links = build_search_links(query_parts, limit=3)
+        for link in links:
+            key = (search["title"], link["site"])
+            if key in seen:
                 continue
+            seen.add(key)
+            cards.append(
+                {
+                    "title": search["title"],
+                    "company": link["site"],
+                    "location": "External platform",
+                    "match_percent": search["match_percent"],
+                    "reason": search["reason"],
+                    "url": link["url"],
+                    "query": link["query"],
+                    "source_site": link["site"],
+                    "detected_skills": skills,
+                }
+            )
 
-            skill_key = normalized_skill.lower()
-            if skill_key in seen:
-                continue
-
-            if re.search(rf"(?<!\w){re.escape(skill_key)}(?!\w)", text_lower):
-                seen.add(skill_key)
-                detected_skills.append(normalized_skill)
-
-    return detected_skills
-
-def simple_skill_match(user_skills: List[str], jobs: list) -> list:
-    """Fallback skill matching without API calls"""
-    user_skills_lower = [s.lower() for s in user_skills]
-    results = []
-    
-    for job in jobs:
-        job_skills = [s.lower() for s in job.get("required_skills", [])]
-        matched_skills = [s for s in job_skills if s in user_skills_lower]
-        
-        if matched_skills:
-            match_percent = min(100, int((len(matched_skills) / len(job_skills) * 100))) if job_skills else 0
-            job_copy = job.copy()
-            job_copy["match_percent"] = match_percent
-            job_copy["reason"] = f"Matched {len(matched_skills)} of {len(job_skills)} required skills: {', '.join(matched_skills)}"
-            results.append(job_copy)
-    
-    return sorted(results, key=lambda x: x["match_percent"], reverse=True)
+    return cards[:6]
 
 
-def fallback_match(user_info: str, jobs: list) -> list:
-    if "Skills:" in user_info:
-        skills_str = user_info.split("Skills:", 1)[1].strip()
-        skills = [s.strip() for s in skills_str.split(",") if s.strip()]
-        return simple_skill_match(skills, jobs)
+def fallback_external_match(user_info: str, provided_skills: list[str] | None = None) -> dict:
+    skills = normalize_keywords(provided_skills or extract_known_skills(user_info))
+    searches = infer_roles_from_skills(skills)
+    cards = build_external_match_cards(searches, skills)
+    base_terms = skills or [search["title"] for search in searches]
 
-    extracted_skills = extract_skills_from_text(user_info, jobs)
-    if extracted_skills:
-        return simple_skill_match(extracted_skills, jobs)
+    return {
+        "detected_skills": skills,
+        "recommended_roles": [search["title"] for search in searches],
+        "matched_jobs": cards,
+        "external_sources": build_search_links(base_terms, limit=5),
+        "summary": "Showing live search links from external platforms based on your profile.",
+    }
 
-    return []
 
-async def get_all_jobs():
-    jobs = []
-    async for job in jobs_collection.find():
-        jobs.append({
-            "id": str(job["_id"]),
-            "title": job["title"],
-            "company": job.get("company", ""),
-            "location": job.get("location", ""),
-            "required_skills": job.get("required_skills", []),
-            "description": job.get("description", "")
-        })
-    return jobs
-
-async def gemini_match(user_info: str, jobs: list) -> list:
+async def gemini_external_match(user_info: str, provided_skills: list[str] | None = None) -> dict:
     gemini_client = get_gemini_client()
     if gemini_client is None:
-        return fallback_match(user_info, jobs)
-
-    jobs_text = "\n".join([
-        f"{i+1}. {j['title']} at {j['company']} ({j['location']}) - Skills: {', '.join(j['required_skills'])}"
-        for i, j in enumerate(jobs)
-    ])
+        return fallback_external_match(user_info, provided_skills)
 
     prompt = f"""
-You are a job matching AI. Based on the user's profile, match them with the most suitable jobs.
+You are a job-search assistant. The portal does not host its own jobs.
+Your task is to infer the best external job-search intents from the user's profile.
 
-User Profile:
+User profile:
 {user_info}
 
-Available Jobs:
-{jobs_text}
+Return ONLY a JSON object in this exact shape:
+{{
+  "detected_skills": ["", ""],
+  "searches": [
+    {{
+      "title": "specific job title to search for",
+      "skills": ["top matching skills"],
+      "match_percent": 0,
+      "reason": "one short sentence"
+    }}
+  ],
+  "summary": "one short sentence"
+}}
 
-Return a JSON array of matched jobs with this format:
-[
-  {{
-    "job_number": 1,
-    "match_percent": 95,
-    "reason": "Why this job matches"
-  }}
-]
-
-Only include jobs with match_percent above 40. Return ONLY the JSON array, nothing else.
+Rules:
+- Provide 2 to 3 search titles.
+- match_percent must be an integer between 50 and 99.
+- Keep the titles practical for external job boards.
+- Keep detected_skills and skills truthful to the profile.
 """
 
     try:
         response = gemini_client.models.generate_content(
             model="gemini-2.0-flash-lite",
-            contents=prompt
+            contents=prompt,
         )
+        result = json.loads(strip_json_fence(response.text or ""))
+        detected_skills = normalize_keywords(result.get("detected_skills", []))
+        if provided_skills:
+            detected_skills = normalize_keywords([*provided_skills, *detected_skills])
 
-        text = strip_json_fence(response.text or "")
+        searches = []
+        for item in result.get("searches", []):
+            title = " ".join(str(item.get("title", "")).split())
+            if not title:
+                continue
+            searches.append(
+                {
+                    "title": title,
+                    "skills": normalize_keywords(item.get("skills", []))[:4],
+                    "match_percent": max(50, min(99, int(item.get("match_percent", 70)))),
+                    "reason": " ".join(str(item.get("reason", "")).split()) or "Recommended from your profile.",
+                }
+            )
 
-        matched_indices = json.loads(text)
-        results = []
-        for match in matched_indices:
-            idx = match["job_number"] - 1
-            if 0 <= idx < len(jobs):
-                job = jobs[idx].copy()
-                job["match_percent"] = match["match_percent"]
-                job["reason"] = match["reason"]
-                results.append(job)
+        if not searches:
+            return fallback_external_match(user_info, provided_skills)
 
-        return sorted(results, key=lambda x: x["match_percent"], reverse=True)
-    except Exception as e:
-        print(f"Gemini API error: {e}. Using fallback skill matching...")
-        return fallback_match(user_info, jobs)
+        return {
+            "detected_skills": detected_skills,
+            "recommended_roles": [search["title"] for search in searches],
+            "matched_jobs": build_external_match_cards(searches, detected_skills),
+            "external_sources": build_search_links(
+                detected_skills or [search["title"] for search in searches],
+                limit=5,
+            ),
+            "summary": " ".join(str(result.get("summary", "")).split()) or "Showing external job searches based on your profile.",
+        }
+    except Exception as exc:
+        print(f"Gemini external match error: {exc}. Using fallback recommendations...")
+        return fallback_external_match(user_info, provided_skills)
+
 
 @router.post("/match-resume")
 async def match_resume(file: UploadFile = File(...)):
@@ -170,29 +265,25 @@ async def match_resume(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Only PDF files allowed")
     content = await file.read()
     resume_text = extract_text_from_pdf(content)
-    jobs = await get_all_jobs()
-    if not jobs:
-        return {"matched_jobs": [], "message": "Koi job available nahi hai!"}
-    matched = await gemini_match(f"Resume:\n{resume_text}", jobs)
-    return {"matched_jobs": matched, "total_matches": len(matched)}
-
-@router.post("/match-skills")
-async def match_skills(skills: List[str]):
-    jobs = await get_all_jobs()
-    if not jobs:
-        return {"matched_jobs": [], "message": "Koi job available nahi hai!"}
-    user_info = f"Skills: {', '.join(skills)}"
-    matched = await gemini_match(user_info, jobs)
+    result = await gemini_external_match(f"Resume:\n{resume_text}")
     return {
-        "your_skills": skills,
-        "matched_jobs": matched,
-        "total_matches": len(matched)
+        **result,
+        "total_matches": len(result["matched_jobs"]),
     }
 
 
-# ---------------------------------------------------------------------------
-# AI Resume Builder
-# ---------------------------------------------------------------------------
+@router.post("/match-skills")
+async def match_skills(skills: List[str]):
+    result = await gemini_external_match(
+        f"Skills: {', '.join(skills)}",
+        provided_skills=skills,
+    )
+    return {
+        "your_skills": normalize_keywords(skills),
+        **result,
+        "total_matches": len(result["matched_jobs"]),
+    }
+
 
 class EducationItem(BaseModel):
     degree: str = ""
@@ -229,15 +320,13 @@ class ResumeRequest(BaseModel):
 
 
 def _split_bullets(text: str) -> List[str]:
-    """Turn a free-form description into clean bullet points."""
     if not text:
         return []
-    parts = re.split(r"[\n\r]+|(?<=[.;])\s+|•|-\s", text)
-    return [p.strip(" -•\t") for p in parts if p.strip(" -•\t")]
+    parts = re.split(r"[\n\r]+|(?<=[.;])\s+|-\s", text)
+    return [part.strip(" -\t") for part in parts if part.strip(" -\t")]
 
 
 def fallback_resume(data: ResumeRequest) -> dict:
-    """Build a structured resume without an AI call."""
     summary = data.summary.strip()
     if not summary:
         role = data.target_role.strip() or "professional"
@@ -251,23 +340,22 @@ def fallback_resume(data: ResumeRequest) -> dict:
         "summary": summary,
         "experience": [
             {
-                "role": e.role,
-                "company": e.company,
-                "duration": e.duration,
-                "bullets": _split_bullets(e.description),
+                "role": item.role,
+                "company": item.company,
+                "duration": item.duration,
+                "bullets": _split_bullets(item.description),
             }
-            for e in data.experience
+            for item in data.experience
         ],
         "projects": [
-            {"name": p.name, "bullets": _split_bullets(p.description)}
-            for p in data.projects
+            {"name": item.name, "bullets": _split_bullets(item.description)}
+            for item in data.projects
         ],
         "skills": data.skills,
     }
 
 
 def gemini_resume(data: ResumeRequest) -> dict:
-    """Use Gemini to polish the resume; fall back on any error."""
     gemini_client = get_gemini_client()
     if gemini_client is None:
         return fallback_resume(data)
@@ -292,8 +380,6 @@ Return ONLY a JSON object with this exact shape (no markdown, no extra text):
   ],
   "skills": ["", ""]
 }}
-
-Keep every fact truthful to the input. If a section has no input, return an empty list.
 """
 
     try:
@@ -301,16 +387,14 @@ Keep every fact truthful to the input. If a section has no input, return an empt
             model="gemini-2.0-flash-lite",
             contents=prompt,
         )
-        text = strip_json_fence(response.text or "")
-        result = json.loads(text)
-        # Guarantee the keys the frontend expects.
+        result = json.loads(strip_json_fence(response.text or ""))
         result.setdefault("summary", "")
         result.setdefault("experience", [])
         result.setdefault("projects", [])
         result.setdefault("skills", data.skills)
         return result
-    except Exception as e:  # noqa: BLE001 - fall back on any AI failure
-        print(f"Gemini resume error: {e}. Using fallback resume builder...")
+    except Exception as exc:
+        print(f"Gemini resume error: {exc}. Using fallback resume builder...")
         return fallback_resume(data)
 
 
@@ -326,41 +410,12 @@ async def build_resume(data: ResumeRequest):
             "linkedin": data.linkedin,
             "target_role": data.target_role,
         },
-        "education": [e.model_dump() for e in data.education],
+        "education": [item.model_dump() for item in data.education],
         "certifications": data.certifications,
         **generated,
     }
 
 
-# ---------------------------------------------------------------------------
-# Skill Gap Analysis
-# ---------------------------------------------------------------------------
-
-# Built-in role -> skills map used when Gemini is unavailable and no matching
-# job exists in the database. Keys are matched case-insensitively as substrings.
-ROLE_SKILLS = {
-    "frontend": ["HTML", "CSS", "JavaScript", "React", "TypeScript", "Git", "Responsive Design"],
-    "backend": ["Python", "Node.js", "SQL", "MongoDB", "REST APIs", "Git", "Docker"],
-    "full stack": ["HTML", "CSS", "JavaScript", "React", "Node.js", "MongoDB", "SQL", "Git"],
-    "data scientist": ["Python", "Statistics", "Machine Learning", "Pandas", "SQL", "Data Visualization"],
-    "data analyst": ["Excel", "SQL", "Power BI", "Tableau", "Statistics", "Python", "Data Analysis"],
-    "machine learning": ["Python", "Machine Learning", "Deep Learning", "TensorFlow", "Statistics", "SQL"],
-    "android": ["Java", "Kotlin", "Android Development", "XML", "REST APIs", "Git"],
-    "ios": ["Swift", "iOS Development", "Xcode", "REST APIs", "Git"],
-    "devops": ["Linux", "Docker", "Kubernetes", "CI/CD", "AWS", "Git", "Bash"],
-    "cloud": ["AWS", "Azure", "Docker", "Kubernetes", "Linux", "Networking"],
-    "cybersecurity": ["Networking", "Linux", "Cybersecurity", "Python", "Ethical Hacking"],
-    "ui/ux": ["Figma", "Adobe XD", "UI/UX", "Wireframing", "Prototyping", "User Research"],
-    "digital marketing": ["SEO", "Digital Marketing", "Content Writing", "Social Media", "Google Analytics"],
-    "accountant": ["Accounting", "Tally", "GST", "Excel", "Finance"],
-    "hr": ["HR Management", "Recruitment", "Payroll", "Communication", "MS Office"],
-    "upsc": ["General Knowledge", "Current Affairs", "Reasoning", "English Grammar", "Essay Writing"],
-    "ssc": ["Quantitative Aptitude", "Reasoning", "General Knowledge", "English Grammar"],
-    "banking": ["Quantitative Aptitude", "Reasoning", "Banking Preparation", "Current Affairs", "English Grammar"],
-    "teaching": ["Teaching", "B.Ed", "CTET", "Communication", "Subject Knowledge"],
-}
-
-# Learning resource hints for common skills (used by the fallback path).
 LEARN_RESOURCES = {
     "python": "Python.org tutorial + freeCodeCamp Python course",
     "javascript": "MDN Web Docs + JavaScript.info",
@@ -378,47 +433,27 @@ class SkillGapRequest(BaseModel):
     target_role: str = Field(min_length=1, max_length=120)
 
 
-def _required_skills_for_role(target_role: str, jobs: list) -> List[str]:
-    """Find the skills a target role needs, preferring real jobs in the DB."""
+def _required_skills_for_role(target_role: str) -> List[str]:
     role_lower = target_role.lower()
-    collected: List[str] = []
-    seen = set()
-
-    # 1) Skills from jobs whose title matches the target role.
-    for job in jobs:
-        if role_lower in job.get("title", "").lower():
-            for skill in job.get("required_skills", []):
-                key = skill.strip().lower()
-                if key and key not in seen:
-                    seen.add(key)
-                    collected.append(skill.strip())
-
-    # 2) Fall back to the built-in role map.
-    if not collected:
-        for key, skills in ROLE_SKILLS.items():
-            if key in role_lower:
-                for skill in skills:
-                    sk = skill.strip().lower()
-                    if sk not in seen:
-                        seen.add(sk)
-                        collected.append(skill)
-                break
-
-    return collected
+    for role, skills in ROLE_SKILLS.items():
+        if role.lower() in role_lower or role_lower in role.lower():
+            return skills
+    for role, skills in ROLE_SKILLS.items():
+        if any(token in role_lower for token in role.lower().split()):
+            return skills
+    return []
 
 
 def _resource_for(skill: str) -> str:
-    return LEARN_RESOURCES.get(skill.strip().lower(), f"Search '{skill} tutorial' on YouTube / freeCodeCamp")
+    return LEARN_RESOURCES.get(skill.strip().lower(), f"Search '{skill} tutorial' on YouTube or freeCodeCamp")
 
 
-def fallback_skill_gap(data: SkillGapRequest, jobs: list) -> dict:
-    """Compute a skill gap without an AI call."""
-    required = _required_skills_for_role(data.target_role, jobs)
-    have_lower = {s.strip().lower() for s in data.current_skills if s.strip()}
+def fallback_skill_gap(data: SkillGapRequest) -> dict:
+    required = _required_skills_for_role(data.target_role)
+    have_lower = {skill.strip().lower() for skill in data.current_skills if skill.strip()}
 
-    matched = [s for s in required if s.lower() in have_lower]
-    missing = [s for s in required if s.lower() not in have_lower]
-
+    matched = [skill for skill in required if skill.lower() in have_lower]
+    missing = [skill for skill in required if skill.lower() not in have_lower]
     readiness = int(len(matched) / len(required) * 100) if required else 0
 
     return {
@@ -426,25 +461,26 @@ def fallback_skill_gap(data: SkillGapRequest, jobs: list) -> dict:
         "readiness_percent": readiness,
         "matched_skills": matched,
         "missing_skills": [
-            {"skill": s, "why": f"{s} is commonly required for {data.target_role} roles.",
-             "resource": _resource_for(s)}
-            for s in missing
+            {
+                "skill": skill,
+                "why": f"{skill} is commonly required for {data.target_role} roles.",
+                "resource": _resource_for(skill),
+            }
+            for skill in missing
         ],
         "advice": (
-            f"You already cover {len(matched)} of {len(required)} key skills. "
-            f"Focus on the missing ones to become job-ready."
-            if required else
-            "Target role ke liye specific skills nahi mili — thoda specific role likhein."
+            f"You already cover {len(matched)} of {len(required)} key skills. Focus on the missing ones next."
+            if required
+            else "No specific skills were found for that target role. Try entering a more specific role."
         ),
         "source": "fallback",
     }
 
 
-def gemini_skill_gap(data: SkillGapRequest, jobs: list) -> dict:
-    """Use Gemini for a richer skill gap analysis; fall back on any error."""
+def gemini_skill_gap(data: SkillGapRequest) -> dict:
     gemini_client = get_gemini_client()
     if gemini_client is None:
-        return fallback_skill_gap(data, jobs)
+        return fallback_skill_gap(data)
 
     prompt = f"""
 You are a career coach. Analyse the skill gap between a candidate and their target role.
@@ -462,9 +498,6 @@ Return ONLY a JSON object with this exact shape (no markdown, no extra text):
   ],
   "advice": "2-3 sentence encouraging, actionable advice"
 }}
-
-readiness_percent must be an integer 0-100 reflecting how ready they are for the role.
-Keep it realistic and specific to the target role.
 """
 
     try:
@@ -472,8 +505,7 @@ Keep it realistic and specific to the target role.
             model="gemini-2.0-flash-lite",
             contents=prompt,
         )
-        text = strip_json_fence(response.text or "")
-        result = json.loads(text)
+        result = json.loads(strip_json_fence(response.text or ""))
         result.setdefault("target_role", data.target_role)
         result.setdefault("readiness_percent", 0)
         result.setdefault("matched_skills", [])
@@ -481,12 +513,11 @@ Keep it realistic and specific to the target role.
         result.setdefault("advice", "")
         result["source"] = "gemini"
         return result
-    except Exception as e:  # noqa: BLE001 - fall back on any AI failure
-        print(f"Gemini skill gap error: {e}. Using fallback analysis...")
-        return fallback_skill_gap(data, jobs)
+    except Exception as exc:
+        print(f"Gemini skill gap error: {exc}. Using fallback analysis...")
+        return fallback_skill_gap(data)
 
 
 @router.post("/skill-gap")
 async def skill_gap(data: SkillGapRequest):
-    jobs = await get_all_jobs()
-    return gemini_skill_gap(data, jobs)
+    return gemini_skill_gap(data)

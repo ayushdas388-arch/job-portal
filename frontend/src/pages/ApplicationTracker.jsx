@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import API from '../api/axios'
+import BrandIcon from '../components/BrandIcon'
 
 const STATUS_OPTIONS = ['Applied', 'Interview', 'Selected', 'Rejected']
 
@@ -51,7 +52,7 @@ function ApplicationTracker() {
 
   const addApplication = async () => {
     if (!form.company.trim()) {
-      alert('Company ka naam daalein.')
+      alert('Enter the company name.')
       return
     }
     try {
@@ -61,7 +62,7 @@ function ApplicationTracker() {
       load()
     } catch (error) {
       console.error('Add application error:', error)
-      alert('Application add nahi hui. Dobara try karein.')
+      alert('Application could not be added. Please try again.')
     }
   }
 
@@ -88,8 +89,8 @@ function ApplicationTracker() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6 text-center">
         <h1 className="text-3xl font-bold text-blue-600 mb-3">📋 Application Tracker</h1>
-        <p className="text-gray-500 mb-6">Apni applications track karne ke liye login karein.</p>
-        <Link to="/login" className="neon-btn">Login karo</Link>
+        <p className="text-gray-500 mb-6">Login to track your applications.</p>
+        <Link to="/login" className="neon-btn">Login</Link>
       </div>
     )
   }
@@ -100,7 +101,7 @@ function ApplicationTracker() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
       <h1 className="text-4xl font-bold text-center text-blue-600 mb-2">📋 Application Tracker</h1>
-      <p className="text-center text-gray-500 mb-8">Har job application ka status ek jagah track karo</p>
+      <p className="text-center text-gray-500 mb-8">Track the status of every job application in one place</p>
 
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Stats */}
@@ -159,7 +160,7 @@ function ApplicationTracker() {
                         {a.applied_date ? `Applied: ${a.applied_date}` : 'Date not set'}
                       </p>
                       {a.notes && <p className="text-sm text-gray-600 mt-1">{a.notes}</p>}
-                      {a.link && <a href={a.link} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">Job link →</a>}
+                      {a.link && <a href={a.link} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-1"><BrandIcon url={a.link} className="w-3 h-3" /> Job link →</a>}
                     </div>
                     <div className="flex flex-col items-end gap-2 shrink-0">
                       <select
@@ -179,8 +180,8 @@ function ApplicationTracker() {
             !loading && (
               <p className="text-sm text-gray-400">
                 {filter === 'All'
-                  ? 'Abhi tak koi application add nahi ki. "+ Add Application" se shuru karo.'
-                  : `Koi application "${filter}" status me nahi hai.`}
+                  ? 'No applications added yet. Start with "+ Add Application".'
+                  : `No application has the "${filter}" status.`}
               </p>
             )
           )}
