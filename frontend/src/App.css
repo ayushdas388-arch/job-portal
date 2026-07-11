@@ -148,3 +148,42 @@ body {
     display: none !important;
   }
 }
+
+/* Wander Light Theme Utility Classes */
+.wander-light-theme {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.wander-bg-white {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.wander-bg-gray {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.wander-text-dark {
+  color: #0f172a !important;
+}
+
+.wander-text-muted {
+  color: #475569 !important;
+}
+
+.wander-border-light {
+  border-color: #cbd5e1 !important;
+}
+
+.wander-badge-shadow {
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
+}
+
+body .wander-search-input, html .wander-search-input {
+  color: #0f172a !important;
+  caret-color: #0f172a !important;
+}
+
+

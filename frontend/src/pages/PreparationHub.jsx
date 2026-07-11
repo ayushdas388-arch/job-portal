@@ -13,18 +13,38 @@ function PreparationHub() {
   const [tab, setTab] = useState('resources')
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-6">
-      <h1 className="text-4xl font-bold text-center text-blue-600 mb-2">Preparation Hub</h1>
-      <p className="text-center text-gray-500 mb-8">Resources, an AI study plan, and a practice quiz - all in one place.</p>
+    <div className="min-h-screen py-16 px-4 md:px-8 relative overflow-hidden flex flex-col justify-start">
+      {/* Background HD Wallpaper */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=80" 
+          alt="Study Planner Desk" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#0f172a]/95 via-[#0f172a]/85 to-[#0f172a]/65" />
+      </div>
 
-      <div className="max-w-4xl mx-auto">
-        <div className="flex gap-2 mb-6 justify-center flex-wrap">
+      <div className="relative z-10 max-w-5xl mx-auto w-full">
+        {/* Header Block */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-300 tracking-tight mb-3">
+            Preparation Hub
+          </h1>
+          <p className="text-sm md:text-base text-slate-300 max-w-xl mx-auto font-medium">
+            Master your goals with curated exam resources, AI-powered week-by-week study planners, and practice quizzes.
+          </p>
+        </div>
+
+        {/* Tab Controls */}
+        <div className="flex gap-2.5 mb-10 justify-center flex-wrap">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-                tab === t.key ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:shadow'
+              className={`px-5 py-2.5 rounded-2xl text-xs md:text-sm font-extrabold transition-all duration-200 cursor-pointer ${
+                tab === t.key 
+                  ? 'bg-white text-[#0f172a] shadow-lg shadow-black/35 scale-105 border border-white' 
+                  : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
               }`}
             >
               {t.label}
@@ -32,10 +52,13 @@ function PreparationHub() {
           ))}
         </div>
 
-        {tab === 'resources' && <Resources />}
-        {tab === 'plan' && <StudyPlan />}
-        {tab === 'quiz' && <Quiz />}
-        {tab === 'video' && <VideoCourses />}
+        {/* Dynamic Glassmorphic Panel Content */}
+        <div className="bg-white/95 backdrop-blur-md border border-slate-200/50 shadow-2xl p-6 md:p-8 rounded-3xl">
+          {tab === 'resources' && <Resources />}
+          {tab === 'plan' && <StudyPlan />}
+          {tab === 'quiz' && <Quiz />}
+          {tab === 'video' && <VideoCourses />}
+        </div>
       </div>
     </div>
   )
@@ -43,17 +66,17 @@ function PreparationHub() {
 
 function VideoCourses() {
   return (
-    <div className="bg-white p-12 rounded-xl shadow-lg text-center border-t-4 border-blue-600">
-      <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-        <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+    <div className="py-12 px-6 text-center">
+      <div className="w-20 h-20 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-slate-200/80 shadow-inner">
+        <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.4 19.5 6 18.9 6 18.25V6.75C6 6.07 5.4 5.5 4.875 5.5H3.375m17.25 14v-1.5c0-.65-.6-1.25-1.125-1.25h-1.5m2.625 2.75v-15c0-.62-.575-1.125-1.125-1.125H16.5m3.375 16.125H4.875M16.5 5.5v14m0-14h1.5m-1.5 0v14" />
         </svg>
       </div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-2">Video Courses</h2>
-      <p className="text-gray-500 max-w-md mx-auto mb-6">
+      <h2 className="text-2xl font-black text-[#0f172a] mb-2 tracking-tight">Video Courses</h2>
+      <p className="text-slate-500 text-sm max-w-md mx-auto mb-6 leading-relaxed font-semibold">
         We are partnering with top educators to bring you high-quality video lectures for various competitive exams and tech stacks.
       </p>
-      <span className="inline-block bg-blue-100 text-blue-700 font-bold px-4 py-2 rounded-full text-sm">
+      <span className="inline-block bg-slate-900 text-white font-black px-5 py-2.5 rounded-2xl text-xs tracking-wider uppercase">
         Coming Soon
       </span>
     </div>
@@ -81,31 +104,31 @@ function Resources() {
     }
   }, [])
 
-  if (loading) return <p className="text-center text-gray-400">Loading...</p>
+  if (loading) return <p className="text-center text-slate-500 font-extrabold py-12">Loading resources...</p>
 
   return (
-    <div className="grid md:grid-cols-2 gap-4">
+    <div className="grid md:grid-cols-2 gap-6">
       {library.map((cat) => (
-        <div key={cat.category} className="bg-white p-5 rounded-xl shadow">
-          <h3 className="text-lg font-bold mb-2">
-            <span className="mr-2">{cat.icon}</span>
+        <div key={cat.category} className="bg-gradient-to-br from-slate-50/50 to-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-200">
+          <h3 className="text-base font-black text-[#0f172a] mb-3 flex items-center gap-2">
+            <span className="text-lg">{cat.icon}</span>
             {cat.category}
           </h3>
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-1.5 mb-4">
             {cat.topics.map((t) => (
-              <span key={t} className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+              <span key={t} className="text-[10px] bg-slate-100 text-slate-700 border border-slate-200/50 font-black px-2.5 py-0.5 rounded-xl uppercase tracking-wider">
                 {t}
               </span>
             ))}
           </div>
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {cat.resources.map((r) => (
               <li key={r.name}>
                 <a
                   href={r.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-gray-700 hover:text-blue-600 hover:underline flex items-center gap-1.5"
+                  className="text-sm font-bold text-slate-700 hover:text-[#0f172a] hover:underline flex items-center gap-2"
                 >
                   <BrandIcon url={r.link} name={r.name} className="w-4 h-4 shrink-0" />
                   {r.name}
@@ -120,7 +143,7 @@ function Resources() {
 }
 
 const inputClass =
-  'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400'
+  'w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-slate-400 text-[#0f172a] font-semibold wander-search-input transition-all'
 
 function StudyPlan() {
   const [form, setForm] = useState({ target: '', exam_date: '', hours_per_day: 3, level: 'beginner' })
@@ -150,10 +173,11 @@ function StudyPlan() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-6 rounded-xl shadow space-y-3">
-        <div className="grid md:grid-cols-2 gap-3">
-          <label className="text-xs text-gray-500">What are you preparing for?
+    <div className="space-y-6">
+      <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-4">
+        <div className="grid md:grid-cols-2 gap-4">
+          <label className="text-xs font-black text-slate-700 uppercase tracking-wider space-y-1.5 flex flex-col">
+            What are you preparing for?
             <input
               className={inputClass}
               placeholder="SSC CGL / Bank PO / React Interview..."
@@ -161,7 +185,8 @@ function StudyPlan() {
               onChange={(e) => setForm({ ...form, target: e.target.value })}
             />
           </label>
-          <label className="text-xs text-gray-500">Exam or target date (optional)
+          <label className="text-xs font-black text-slate-700 uppercase tracking-wider space-y-1.5 flex flex-col">
+            Exam or target date (optional)
             <input
               type="date"
               className={inputClass}
@@ -169,7 +194,8 @@ function StudyPlan() {
               onChange={(e) => setForm({ ...form, exam_date: e.target.value })}
             />
           </label>
-          <label className="text-xs text-gray-500">How many hours per day?
+          <label className="text-xs font-black text-slate-700 uppercase tracking-wider space-y-1.5 flex flex-col">
+            How many hours per day?
             <input
               type="number"
               min="1"
@@ -179,7 +205,8 @@ function StudyPlan() {
               onChange={(e) => setForm({ ...form, hours_per_day: e.target.value })}
             />
           </label>
-          <label className="text-xs text-gray-500">Level
+          <label className="text-xs font-black text-slate-700 uppercase tracking-wider space-y-1.5 flex flex-col">
+            Level
             <select
               className={inputClass}
               value={form.level}
@@ -191,30 +218,34 @@ function StudyPlan() {
             </select>
           </label>
         </div>
-        {err && <p className="text-sm text-red-500">{err}</p>}
-        <button onClick={generate} disabled={loading} className="neon-btn w-full">
-          {loading ? 'Generating...' : 'Generate Study Plan'}
+        {err && <p className="text-sm font-bold text-red-600 mt-2">{err}</p>}
+        <button 
+          onClick={generate} 
+          disabled={loading} 
+          className="w-full bg-[#0f172a] hover:bg-[#1e293b] text-white text-xs font-extrabold py-3.5 rounded-xl transition-all shadow-md hover:scale-[1.01] duration-150 cursor-pointer uppercase tracking-wider"
+        >
+          {loading ? 'Generating Study Plan...' : 'Generate Study Plan'}
         </button>
       </div>
 
       {plan && (
-        <div className="bg-white p-6 rounded-xl shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">{plan.target} - {plan.weeks} weeks</h3>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${plan.source === 'gemini' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-500'}`}>
-              {plan.source === 'gemini' ? 'AI' : 'Basic'}
+        <div className="bg-gradient-to-br from-slate-50/50 to-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-200/60 pb-4">
+            <h3 className="text-lg font-black text-[#0f172a] tracking-tight">{plan.target} - {plan.weeks} weeks</h3>
+            <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider ${['gemini', 'groq'].includes(plan.source) ? 'bg-emerald-100 text-emerald-700 border border-emerald-200/50' : 'bg-slate-100 text-slate-600 border border-slate-200/50'}`}>
+              {['gemini', 'groq'].includes(plan.source) ? 'AI Powered' : 'Basic Model'}
             </span>
           </div>
-          {plan.summary && <p className="text-sm text-gray-600 mb-4">{plan.summary}</p>}
-          <div className="space-y-3">
+          {plan.summary && <p className="text-sm text-slate-600 font-semibold leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200/40">{plan.summary}</p>}
+          <div className="space-y-4">
             {plan.plan.map((w) => (
-              <div key={w.week} className="border-l-4 border-blue-400 pl-4 py-1">
-                <p className="font-semibold text-gray-800">
-                  Week {w.week}: <span className="text-blue-600">{w.focus}</span>
+              <div key={w.week} className="border-l-4 border-[#0f172a] pl-4 py-1.5 bg-slate-50/30 rounded-r-xl pr-3">
+                <p className="font-black text-slate-800 text-sm">
+                  Week {w.week}: <span className="text-[#0f172a] underline decoration-slate-300 decoration-2 underline-offset-4">{w.focus}</span>
                 </p>
-                <ul className="list-disc list-inside text-sm text-gray-600 mt-1">
+                <ul className="list-disc list-inside text-xs text-slate-600 font-semibold mt-2 space-y-1">
                   {w.tasks.map((task, i) => (
-                    <li key={i}>{task}</li>
+                    <li key={i} className="leading-relaxed">{task}</li>
                   ))}
                 </ul>
               </div>
@@ -266,21 +297,28 @@ function Quiz() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-8 rounded-2xl shadow-md border border-indigo-100">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-indigo-900 mb-2">Practice Quiz Arena</h2>
-          <p className="text-indigo-700">Test your knowledge with 30+ randomized questions across different domains. Select your topic and difficulty to begin.</p>
+      <div className="bg-[#0f172a] text-white p-8 rounded-2xl border border-slate-700/20 shadow-xl relative overflow-hidden">
+        {/* Decorative background watermark */}
+        <div className="absolute right-0 top-0 opacity-10 pointer-events-none select-none translate-x-12 -translate-y-12">
+          <svg className="w-64 h-64 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2zm0 8H7v-2h10v2z"/>
+          </svg>
         </div>
-        <div className="flex flex-col md:flex-row gap-3">
+
+        <div className="mb-6 relative z-10">
+          <h2 className="text-2xl font-black text-white mb-2 tracking-tight">Practice Quiz Arena</h2>
+          <p className="text-slate-300 text-sm font-semibold max-w-xl">Test your knowledge with 30+ randomized questions across different domains. Select your topic and difficulty to begin.</p>
+        </div>
+        <div className="flex flex-col md:flex-row gap-3 relative z-10">
           <input
-            className={`${inputClass} flex-1 border-indigo-200 focus:border-indigo-500`}
+            className={`${inputClass} flex-1 border-slate-700/50 focus:border-slate-500 bg-slate-800/80 text-white placeholder-slate-400`}
             placeholder="Topic: Aptitude / Reasoning / Python / SQL / DBMS..."
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && generate()}
           />
           <select 
-            className={`${inputClass} w-full md:w-48 border-indigo-200 focus:border-indigo-500`}
+            className={`${inputClass} w-full md:w-48 border-slate-700/50 focus:border-slate-500 bg-slate-800/80 text-white`}
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
           >
@@ -288,61 +326,73 @@ function Quiz() {
             <option value="medium">Medium (Intermediate)</option>
             <option value="hard">Hard (Advanced)</option>
           </select>
-          <button onClick={generate} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-md shrink-0">
+          <button 
+            onClick={generate} 
+            disabled={loading} 
+            className="bg-white hover:bg-slate-100 text-[#0f172a] font-extrabold py-3 px-6 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase text-xs tracking-wider hover:scale-[1.03] duration-150"
+          >
             {loading ? 'Generating 30 Qs...' : 'Start Quiz'}
           </button>
         </div>
-        {err && <p className="text-sm text-red-500 mt-3 bg-red-50 p-2 rounded">{err}</p>}
+        {err && <p className="text-sm font-bold text-red-400 mt-3 bg-red-950/20 border border-red-900/30 p-2.5 rounded-xl">{err}</p>}
       </div>
 
       {quiz && (
-        <div className="bg-white p-6 rounded-xl shadow space-y-5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold">Topic: {quiz.topic}</h3>
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <h3 className="text-lg font-black text-[#0f172a]">Topic: <span className="underline decoration-slate-300 underline-offset-4">{quiz.topic}</span></h3>
             {answeredCount === quiz.questions.length && (
-              <span className="text-sm font-semibold text-blue-600">
+              <span className="text-sm font-black text-[#0f172a] bg-slate-100 border border-slate-200 px-3 py-1 rounded-xl">
                 Score: {score}/{quiz.questions.length}
               </span>
             )}
           </div>
-          {quiz.note && <p className="text-xs text-yellow-600 bg-yellow-50 rounded p-2">{quiz.note}</p>}
+          {quiz.note && <p className="text-xs font-semibold text-amber-700 bg-amber-50 rounded-xl border border-amber-200/50 p-3">{quiz.note}</p>}
 
-          {quiz.questions.map((q, qi) => {
-            const chosen = answers[qi]
-            const answered = chosen !== undefined
-            return (
-              <div key={qi} className="border-b border-gray-100 pb-4 last:border-0">
-                <p className="font-medium text-gray-800 mb-2">
-                  {qi + 1}. {q.question}
-                </p>
-                <div className="space-y-1.5">
-                  {q.options.map((opt, oi) => {
-                    let cls = 'border-gray-200 hover:border-blue-300'
-                    if (answered) {
-                      if (oi === q.answer_index) cls = 'border-green-400 bg-green-50 text-green-700'
-                      else if (oi === chosen) cls = 'border-red-400 bg-red-50 text-red-700'
-                      else cls = 'border-gray-200 opacity-60'
-                    }
-                    return (
-                      <button
-                        key={oi}
-                        onClick={() => choose(qi, oi)}
-                        disabled={answered}
-                        className={`w-full text-left text-sm border rounded-lg px-3 py-2 transition ${cls}`}
-                      >
-                        {String.fromCharCode(65 + oi)}. {opt}
-                        {answered && oi === q.answer_index && ' (Correct)'}
-                        {answered && oi === chosen && oi !== q.answer_index && ' (Incorrect)'}
-                      </button>
-                    )
-                  })}
+          <div className="space-y-6 divide-y divide-slate-100">
+            {quiz.questions.map((q, qi) => {
+              const chosen = answers[qi]
+              const answered = chosen !== undefined
+              return (
+                <div key={qi} className={`pt-6 first:pt-0 ${answered ? 'opacity-100' : ''}`}>
+                  <p className="font-black text-slate-800 mb-3 text-sm leading-relaxed">
+                    {qi + 1}. {q.question}
+                  </p>
+                  <div className="space-y-2">
+                    {q.options.map((opt, oi) => {
+                      let cls = 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 text-slate-700'
+                      if (answered) {
+                        if (oi === q.answer_index) cls = 'border-emerald-400 bg-emerald-50 text-emerald-800 font-extrabold shadow-sm'
+                        else if (oi === chosen) cls = 'border-rose-400 bg-rose-50 text-rose-800 font-extrabold'
+                        else cls = 'border-slate-100 text-slate-400 opacity-60'
+                      }
+                      return (
+                        <button
+                          key={oi}
+                          onClick={() => choose(qi, oi)}
+                          disabled={answered}
+                          className={`w-full text-left text-xs md:text-sm border rounded-xl px-4 py-3.5 transition font-semibold flex items-center justify-between ${cls} cursor-pointer`}
+                        >
+                          <span>{String.fromCharCode(65 + oi)}. {opt}</span>
+                          {answered && oi === q.answer_index && (
+                            <span className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded border border-emerald-300/40">Correct</span>
+                          )}
+                          {answered && oi === chosen && oi !== q.answer_index && (
+                            <span className="text-[10px] uppercase tracking-wider font-extrabold text-rose-700 bg-rose-100/60 px-2 py-0.5 rounded border border-rose-300/40">Selected</span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {answered && q.explanation && (
+                    <div className="text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-200/50 rounded-xl p-3.5 mt-3.5 leading-relaxed">
+                      <span className="text-slate-800 font-black">Explanation:</span> {q.explanation}
+                    </div>
+                  )}
                 </div>
-                {answered && q.explanation && (
-                  <p className="text-xs text-gray-500 mt-2">Explanation: {q.explanation}</p>
-                )}
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
           
           {answeredCount === quiz.questions.length && quiz.questions.length > 0 && (
             <div className="pt-6 border-t border-gray-200 flex flex-col items-center">

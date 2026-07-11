@@ -11,6 +11,7 @@ from config import CORS_ORIGINS
 from database import close_database, ensure_indexes, ping_database
 from rate_limit import limiter
 from routes import ai, applications, auth, dashboard, eligibility, jobs, notifications, prep
+from routes import interview
 
 
 @asynccontextmanager
@@ -68,6 +69,7 @@ app.include_router(applications.router)
 app.include_router(notifications.router)
 app.include_router(prep.router)
 app.include_router(eligibility.router)
+app.include_router(interview.router)
 
 
 @app.get("/")

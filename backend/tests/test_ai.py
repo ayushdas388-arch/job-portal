@@ -32,9 +32,9 @@ class AIRouteTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Backend Developer", result["recommended_roles"])
         self.assertIn("url", result["matched_jobs"][0])
 
-    async def test_gemini_external_match_uses_fallback_when_client_unavailable(self):
-        with patch.object(ai, "client", None), patch.object(ai, "GEMINI_API_KEY", ""):
-            result = await ai.gemini_external_match("Skills: React, JavaScript", ["React", "JavaScript"])
+    async def test_groq_external_match_uses_fallback_when_client_unavailable(self):
+        with patch.object(ai, "GROQ_API_KEY", ""):
+            result = await ai.groq_external_match("Skills: React, JavaScript", ["React", "JavaScript"])
 
         self.assertTrue(result["matched_jobs"])
         self.assertIn("Frontend Developer", result["recommended_roles"])

@@ -1,64 +1,384 @@
 import { Link } from 'react-router-dom'
-import BrandIcon from '../components/BrandIcon'
+import {
+  FaInstagram,
+  FaTwitter,
+  FaFacebookF,
+  FaSearch,
+  FaBriefcase,
+  FaHeadset,
+  FaStar,
+  FaChevronLeft,
+  FaChevronRight,
+  FaFileAlt,
+  FaGraduationCap,
+  FaArrowRight
+} from 'react-icons/fa'
 
 function Home() {
   return (
-    <div className="space-y-8">
-      {/* Hero Section - Clean Light Theme */}
-      <div className="bg-white rounded-2xl p-10 md:p-16 text-center shadow-sm border border-slate-200">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
-          Find Jobs Across <span className="text-indigo-600">Top Platforms</span>
-        </h1>
-        <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-          AI-powered matching that turns your resume or skills into live searches on external job sites.
-        </p>
-        <div className="flex justify-center gap-4">
-          <Link to="/jobs" className="neon-outline">
-            Explore Platforms
-          </Link>
-          <Link to="/ai-match" className="neon-btn">
-            AI Match
-          </Link>
-        </div>
-      </div>
+    <div className="wander-light-theme min-h-screen p-4 md:p-8 flex flex-col font-sans select-none overflow-x-hidden">
+      <div className="max-w-7xl mx-auto w-full space-y-12">
 
-      {/* Features Section - Modern Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Card 1 */}
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300">
-          <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-2xl font-bold mb-6">
-            AI
+        {/* 1. Header Area */}
+        <header className="flex flex-col md:flex-row items-center justify-between gap-4 py-4 border-b border-slate-200">
+          {/* Menu icon and Logo */}
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <button
+              onMouseEnter={() => window.dispatchEvent(new Event('open-sidebar'))}
+              onClick={() => window.dispatchEvent(new Event('toggle-sidebar'))}
+              className="flex flex-col gap-1 justify-center items-center w-8 h-8 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer shrink-0"
+              title="Menu"
+            >
+              <span className="w-5 h-0.5 bg-slate-800 rounded-full"></span>
+              <span className="w-5 h-0.5 bg-slate-800 rounded-full"></span>
+              <span className="w-5 h-0.5 bg-slate-800 rounded-full"></span>
+            </button>
+            <div className="text-2xl font-black tracking-widest wander-text-dark font-mono">
+              CAREERBUILDER<span className="text-blue-600 font-sans"></span>
+            </div>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-3">AI Matching</h3>
-          <p className="text-slate-600 leading-relaxed text-sm">
-            Upload your resume or skills and let AI build targeted external job searches for you.
-          </p>
-        </div>
 
-        {/* Card 2 */}
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300">
-          <div className="w-14 h-14 bg-slate-100 rounded-xl flex items-center justify-center gap-1 mb-6">
-            <BrandIcon url="linkedin" className="w-4 h-4" />
-            <BrandIcon url="indeed" className="w-4 h-4" />
-            <BrandIcon url="naukri" className="w-4 h-4 text-slate-500" />
+          {/* Search Pill & CTA */}
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="relative flex-1 md:flex-none">
+              <input
+                type="text"
+                placeholder="Search for jobs, skills..."
+                className="w-full md:w-64 bg-slate-100 hover:bg-slate-200/70 focus:bg-white text-slate-800 wander-search-input text-xs rounded-full pl-8 pr-4 py-2 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+              />
+              <FaSearch className="absolute left-3 top-2.5 text-slate-400 text-xs" />
+            </div>
+            <Link
+              to="/jobs"
+              className="bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full shadow-sm hover:shadow-md transition-all whitespace-nowrap"
+            >
+              Search
+            </Link>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-3">Live External Results</h3>
-          <p className="text-slate-600 leading-relaxed text-sm">
-            Open current listings directly on LinkedIn, Naukri, Indeed, Foundit, and more.
-          </p>
-        </div>
+        </header>
 
-        {/* Card 3 */}
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300">
-          <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-2xl font-bold mb-6">
-            GO
+        {/* 2. Hero Section */}
+        <section className="relative rounded-3xl overflow-hidden shadow-lg h-[400px] md:h-[500px]">
+          {/* Background Image */}
+          <img
+            src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1600&auto=format&fit=crop&q=80"
+            alt="Office Workspace"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Dark Overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/80 via-[#0f172a]/30 to-[#0f172a]/10" />
+
+          {/* Hero Content */}
+          <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16 text-white space-y-4 max-w-3xl">
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-widest text-white leading-none font-mono drop-shadow-md">
+              FUTURE.
+            </h1>
+            <p className="text-sm md:text-base text-slate-200 max-w-xl font-medium leading-relaxed drop-shadow-sm">
+              Discover breathtaking career opportunities across top platforms with curated jobs, AI insights, and hassle-free matching all in one platform.
+            </p>
+            <div className="flex gap-4 pt-2">
+              <Link
+                to="/ai-match"
+                className="bg-white hover:bg-blue-600 hover:text-white text-slate-900 text-xs font-bold px-6 py-3 rounded-full transition-all shadow-md transform hover:-translate-y-0.5"
+              >
+                Plan Your Career
+              </Link>
+              <Link
+                to="/jobs"
+                className="border-2 border-white/80 hover:border-white hover:bg-white/10 text-white text-xs font-bold px-6 py-3 rounded-full transition-all shadow-md transform hover:-translate-y-0.5"
+              >
+                Explore Platforms
+              </Link>
+            </div>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-3">Direct Platform Links</h3>
-          <p className="text-slate-600 leading-relaxed text-sm">
-            Skip manual copying and jump straight into live search pages and official portals.
-          </p>
-        </div>
+        </section>
+
+        {/* 3. Why Choose Section */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 py-4">
+          {/* Left Column */}
+          <div className="space-y-6 flex flex-col justify-between">
+            <div className="space-y-4">
+              <h2 className="text-2xl md:text-3xl font-extrabold wander-text-dark tracking-tight leading-tight">
+                Why Thousands of Job Seekers Choose FUTURE.ai for Their Career Adventures
+              </h2>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                From pristine platform mapping to smart resume building, we make exploring the careers marketplace easier, safer, and more exciting with expert-crafted AI matches and round-the-clock application support.
+              </p>
+              {/* Social Media Links */}
+              <div className="flex gap-4 pt-2">
+                <a href="#instagram" className="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:border-blue-600 transition-colors">
+                  <FaInstagram className="text-xs" />
+                </a>
+                <a href="#twitter" className="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:border-blue-600 transition-colors">
+                  <FaTwitter className="text-xs" />
+                </a>
+                <a href="#facebook" className="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:border-blue-600 transition-colors">
+                  <FaFacebookF className="text-xs" />
+                </a>
+              </div>
+            </div>
+
+            {/* Metrics */}
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-200">
+              <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-2">
+                  <FaBriefcase className="text-sm" />
+                </div>
+                <span className="text-xl font-black wander-text-dark">12k+</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Happy Candidates</span>
+              </div>
+              <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-2">
+                  <FaStar className="text-sm" />
+                </div>
+                <span className="text-xl font-black wander-text-dark">10yrs</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Match Experience</span>
+              </div>
+              <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-2">
+                  <FaSearch className="text-sm" />
+                </div>
+                <span className="text-xl font-black wander-text-dark">50+</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Portals Covered</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column (Stacked Cards) */}
+          <div className="space-y-4">
+            {/* Box 1 */}
+            <div className="flex gap-4 p-5 wander-bg-white border border-slate-200/80 rounded-2xl wander-badge-shadow hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+                <FaSearch />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold wander-text-dark">AI Matching & Fit</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Our advanced AI matching algorithm inspects your resume and constructs custom search intents targeting multiple external job portals instantly.
+                </p>
+              </div>
+            </div>
+
+            {/* Box 2 */}
+            <div className="flex gap-4 p-5 wander-bg-white border border-slate-200/80 rounded-2xl wander-badge-shadow hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+                <FaBriefcase />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold wander-text-dark">All-in-One Booking & Track</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Save roles directly into your dashboard to monitor application status, deadlines, exam alerts, and interview preparations in one unified place.
+                </p>
+              </div>
+            </div>
+
+            {/* Box 3 */}
+            <div className="flex gap-4 p-5 wander-bg-white border border-slate-200/80 rounded-2xl wander-badge-shadow hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+                <FaHeadset />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold wander-text-dark">24/7 Career Assistance</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Access mock AI interview hubs, skill-gap analysis sheets, and structured roadmap guides anytime to keep your job search progressing smoothly.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Top Platforms (Top Destinations) */}
+        <section className="wander-bg-gray rounded-3xl p-6 md:p-10 space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-extrabold wander-text-dark tracking-tight">Top Platforms</h2>
+              <p className="text-xs text-slate-500 mt-1 max-w-md">
+                From professional networking spaces to specific regional aggregators, find the platform that best fits your job profile.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button className="w-9 h-9 rounded-full bg-white hover:bg-slate-200 flex items-center justify-center border border-slate-200 hover:border-slate-300 text-slate-700 transition-colors shadow-sm">
+                <FaChevronLeft className="text-xs" />
+              </button>
+              <button className="w-9 h-9 rounded-full bg-white hover:bg-slate-200 flex items-center justify-center border border-slate-200 hover:border-slate-300 text-slate-700 transition-colors shadow-sm">
+                <FaChevronRight className="text-xs" />
+              </button>
+            </div>
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            {/* Card 1: LinkedIn */}
+            <div className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
+              <div className="h-48 overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=600&auto=format&fit=crop&q=80" alt="LinkedIn Platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <span className="absolute top-3 right-3 bg-white/95 text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">Starts at Free</span>
+              </div>
+              <div className="p-4 space-y-2">
+                <div className="flex justify-between items-center text-xs text-slate-400 font-semibold">
+                  <span>Professional Network</span>
+                  <span className="flex items-center gap-1"><FaStar className="text-amber-400" /> 4.9 (1.2k)</span>
+                </div>
+                <h3 className="font-bold text-sm wander-text-dark">LinkedIn Jobs</h3>
+                <span className="text-[10px] font-medium text-slate-400 block uppercase tracking-wider">Global Reach</span>
+              </div>
+            </div>
+
+            {/* Card 2: Indeed */}
+            <div className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
+              <div className="h-48 overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop&q=80" alt="Indeed Platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <span className="absolute top-3 right-3 bg-white/95 text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">Starts at Free</span>
+              </div>
+              <div className="p-4 space-y-2">
+                <div className="flex justify-between items-center text-xs text-slate-400 font-semibold">
+                  <span>Standard Job Board</span>
+                  <span className="flex items-center gap-1"><FaStar className="text-amber-400" /> 4.6 (950)</span>
+                </div>
+                <h3 className="font-bold text-sm wander-text-dark">Indeed Jobs</h3>
+                <span className="text-[10px] font-medium text-slate-400 block uppercase tracking-wider">Multi-national</span>
+              </div>
+            </div>
+
+            {/* Card 3: Naukri */}
+            <div className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
+              <div className="h-48 overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80" alt="Naukri Platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <span className="absolute top-3 right-3 bg-white/95 text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">Starts at Free</span>
+              </div>
+              <div className="p-4 space-y-2">
+                <div className="flex justify-between items-center text-xs text-slate-400 font-semibold">
+                  <span>Indian Market Leader</span>
+                  <span className="flex items-center gap-1"><FaStar className="text-amber-400" /> 4.8 (2k)</span>
+                </div>
+                <h3 className="font-bold text-sm wander-text-dark">Naukri.com</h3>
+                <span className="text-[10px] font-medium text-slate-400 block uppercase tracking-wider">India & Gulf</span>
+              </div>
+            </div>
+
+            {/* Card 4: Upwork */}
+            <div className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
+              <div className="h-48 overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&auto=format&fit=crop&q=80" alt="Upwork Platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <span className="absolute top-3 right-3 bg-white/95 text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">Commission-Based</span>
+              </div>
+              <div className="p-4 space-y-2">
+                <div className="flex justify-between items-center text-xs text-slate-400 font-semibold">
+                  <span>Freelance Platform</span>
+                  <span className="flex items-center gap-1"><FaStar className="text-amber-400" /> 4.7 (780)</span>
+                </div>
+                <h3 className="font-bold text-sm wander-text-dark">Upwork Freelance</h3>
+                <span className="text-[10px] font-medium text-slate-400 block uppercase tracking-wider">Remote / Worldwide</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div className="pt-2">
+            <Link to="/jobs" className="bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-bold px-6 py-3 rounded-full shadow-sm hover:shadow-md transition-all inline-block">
+              View all platforms
+            </Link>
+          </div>
+        </section>
+
+        {/* 5. Tour Packages Section */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Card 1: Main packages box */}
+          <div className="bg-slate-800 text-white rounded-3xl p-8 flex flex-col justify-between min-h-[300px]">
+            <div className="space-y-3">
+              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider block">Career Services</span>
+              <h3 className="text-2xl font-black text-white leading-tight">Smart tools to level up your career game</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Unlock specialized AI analysis, template builders, and real-time trackers. Custom tools designed for modern candidate needs.
+              </p>
+            </div>
+            <div className="pt-6">
+              <Link to="/ai-match" className="bg-white hover:bg-blue-600 hover:text-white text-slate-900 text-xs font-bold px-6 py-3 rounded-full transition-all inline-block shadow-sm">
+                Browse all tools
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 2: AI Interview Coaching */}
+          <div className="rounded-3xl overflow-hidden shadow-md relative min-h-[300px] flex flex-col justify-end p-8 group">
+            <img
+              src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=80"
+              alt="Interview Prep"
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/90 via-[#0f172a]/40 to-[#0f172a]/10" />
+            <div className="relative z-10 space-y-2 text-white">
+              <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest block">Preparation Hub</span>
+              <h4 className="text-lg font-extrabold">AI Interview Coach</h4>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Practice customized mock interviews with instant AI audio/text analysis and comprehensive skill feedback dashboards.
+              </p>
+              <Link to="/ai-interview" className="text-xs font-bold text-white hover:text-blue-400 transition-colors flex items-center gap-1.5 pt-2">
+                Start mock session <FaArrowRight className="text-[10px]" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 3: Resume Builder */}
+          <div className="rounded-3xl overflow-hidden shadow-md relative min-h-[300px] flex flex-col justify-end p-8 group">
+            <img
+              src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=600&auto=format&fit=crop&q=80"
+              alt="Resume Building"
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/90 via-[#0f172a]/40 to-[#0f172a]/10" />
+            <div className="relative z-10 space-y-2 text-white">
+              <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest block">Interactive Builder</span>
+              <h4 className="text-lg font-extrabold">Resume Template Suite</h4>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Select from beautiful layouts, input standard fields, and download industry-approved PDFs matching top HR standards.
+              </p>
+              <Link to="/resume-builder" className="text-xs font-bold text-white hover:text-blue-400 transition-colors flex items-center gap-1.5 pt-2">
+                Build new resume <FaArrowRight className="text-[10px]" />
+              </Link>
+            </div>
+          </div>
+
+        </section>
+
+        {/* 6. Easy steps section */}
+        <section className="text-center py-6 space-y-8">
+          <div className="space-y-2">
+            <h2 className="text-2xl md:text-3xl font-extrabold wander-text-dark tracking-tight">Job search made as easy as 1-2-3</h2>
+            <p className="text-xs text-slate-400">Follow three simple milestones to begin applying across top global platforms.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-4xl mx-auto">
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200/50 flex items-center justify-center text-blue-600 font-bold mx-auto text-sm shadow-sm">
+                <FaFileAlt />
+              </div>
+              <h3 className="font-bold text-sm wander-text-dark">1. Upload Resume</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Provide your existing CV or insert details manually inside our template builder to set up your primary profile.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200/50 flex items-center justify-center text-blue-600 font-bold mx-auto text-sm shadow-sm">
+                <FaSearch />
+              </div>
+              <h3 className="font-bold text-sm wander-text-dark">2. Run AI Match</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Let AI map your skills, category, and preferences to build optimized query strings for active listings.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200/50 flex items-center justify-center text-blue-600 font-bold mx-auto text-sm shadow-sm">
+                <FaGraduationCap />
+              </div>
+              <h3 className="font-bold text-sm wander-text-dark">3. Apply & Track</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Follow direct links to apply on source websites and save roles to your progress tracking panel.
+              </p>
+            </div>
+          </div>
+        </section>
 
       </div>
     </div>

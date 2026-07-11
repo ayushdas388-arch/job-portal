@@ -1,26 +1,29 @@
-"""Preparation Hub: curated study resources + AI study plan + AI practice quiz.
+"""Preparation Hub: curated study resources + AI study plan + practice quiz.
 
-Everything degrades gracefully — if Gemini isn't configured, sensible
-hand-built fallbacks are returned so the feature always works.
+Quiz questions now come from OpenTDB (free, no API key, unlimited) first,
+then fall back to Gemini, then to a small hand-built bank. Everything
+degrades gracefully so the feature always returns something usable.
 """
+import html
 import json
 import logging
+import random
 from datetime import date
 from typing import List, Optional
 
+import requests
 from fastapi import APIRouter
 from pydantic import BaseModel, Field, field_validator
 
-from routes.ai import get_gemini_client, strip_json_fence
+from routes.ai import query_groq, query_groq_async, strip_json_fence
+from config import GROQ_API_KEY
+import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/prep", tags=["Preparation"])
 
-GEMINI_MODEL = "gemini-2.0-flash-lite"
-
-
 # ---------------------------------------------------------------------------
-# Curated resource library (static — always available, no API needed)
+# Curated resource library (static - always available, no API needed)
 # ---------------------------------------------------------------------------
 
 RESOURCE_LIBRARY = [
@@ -93,7 +96,6 @@ RESOURCE_LIBRARY = [
     },
 ]
 
-
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
@@ -118,13 +120,11 @@ class StudyPlanRequest(BaseModel):
             raise ValueError("exam_date must be YYYY-MM-DD") from exc
         return value
 
-
 class QuizRequest(BaseModel):
     topic: str = Field(min_length=1, max_length=120)
     count: int = Field(default=30, ge=1, le=50)
     difficulty: str = Field(default="medium", max_length=20)
     seed: str = Field(default="", max_length=100)
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -142,7 +142,6 @@ def _weeks_until(exam_date: Optional[str]) -> int:
         return 1
     return max(1, min(24, round(days / 7)))
 
-
 # ---------------------------------------------------------------------------
 # Study plan
 # ---------------------------------------------------------------------------
@@ -157,7 +156,6 @@ def fallback_study_plan(data: StudyPlanRequest) -> dict:
     ]
     plan = []
     for i in range(weeks):
-        # spread the 4 phases across however many weeks we have
         phase = phases[min(len(phases) - 1, int(i / max(1, weeks) * len(phases)))]
         plan.append({
             "week": i + 1,
@@ -177,10 +175,8 @@ def fallback_study_plan(data: StudyPlanRequest) -> dict:
         "source": "fallback",
     }
 
-
-def gemini_study_plan(data: StudyPlanRequest) -> dict:
-    gemini_client = get_gemini_client()
-    if gemini_client is None:
+def groq_study_plan(data: StudyPlanRequest) -> dict:
+    if not GROQ_API_KEY:
         return fallback_study_plan(data)
 
     weeks = _weeks_until(data.exam_date)
@@ -195,29 +191,124 @@ def gemini_study_plan(data: StudyPlanRequest) -> dict:
         "Keep tasks short, practical, and written in clear English."
     )
     try:
-        response = gemini_client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=prompt,
-        )
-        text = strip_json_fence(response.text or "")
-        result = json.loads(text)
+        response_text = query_groq(prompt, json_mode=True)
+        if not response_text:
+            return fallback_study_plan(data)
+
+        result = json.loads(strip_json_fence(response_text))
         result.setdefault("summary", "")
         result.setdefault("plan", [])
         result["target"] = data.target
         result["weeks"] = weeks
         result["hours_per_day"] = data.hours_per_day
-        result["source"] = "gemini"
+        result["source"] = "groq"
         if not result["plan"]:
             return fallback_study_plan(data)
         return result
     except Exception as exc:
-        logger.warning("gemini_study_plan failed: %s", exc)
+        logger.warning("groq_study_plan failed: %s", exc)
         return fallback_study_plan(data)
 
+# ---------------------------------------------------------------------------
+# Practice quiz - OpenTDB (primary), Gemini (optional), static bank (last)
+# ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# Practice quiz
-# ---------------------------------------------------------------------------
+# Your topic names -> OpenTDB category IDs
+OPENTDB_CATEGORIES = {
+    "general": 9,
+    "computers": 18,
+    "computer science": 18,
+    "coding": 18,
+    "python": 18,
+    "sql": 18,
+    "maths": 19,
+    "math": 19,
+    "aptitude": 19,
+    "science": 17,
+    "gk": 9,
+    "general knowledge": 9,
+    "sports": 21,
+    "history": 23,
+    "geography": 22,
+    "politics": 24,
+}
+
+def _map_category(topic: str) -> Optional[int]:
+    key = topic.strip().lower()
+    # exact match first, then partial match
+    if key in OPENTDB_CATEGORIES:
+        return OPENTDB_CATEGORIES[key]
+    for name, cat_id in OPENTDB_CATEGORIES.items():
+        if name in key or key in name:
+            return cat_id
+    return None  # None = OpenTDB picks any category (mixed)
+
+def _map_difficulty(difficulty: str) -> Optional[str]:
+    d = difficulty.strip().lower()
+    return d if d in {"easy", "medium", "hard"} else None
+
+def opentdb_quiz(data: QuizRequest) -> dict:
+    """Pulls MCQs from OpenTDB. No API key needed, unlimited & free."""
+    params = {
+        "amount": min(data.count, 50),   # OpenTDB max 50 per call
+        "type": "multiple",              # 4-option MCQs only
+    }
+    category = _map_category(data.topic)
+    if category is not None:
+        params["category"] = category
+    difficulty = _map_difficulty(data.difficulty)
+    if difficulty is not None:
+        params["difficulty"] = difficulty
+
+    try:
+        resp = requests.get("https://opentdb.com/api.php", params=params, timeout=10)
+        resp.raise_for_status()
+        payload = resp.json()
+    except Exception as exc:
+        logger.warning("opentdb_quiz request failed: %s", exc)
+        return fallback_quiz(data)
+
+    # response_code 0 = success. 1 = not enough questions for this filter.
+    if payload.get("response_code") != 0 or not payload.get("results"):
+        # if the difficulty filter was too narrow, retry once without it
+        if difficulty is not None:
+            relaxed = QuizRequest(
+                topic=data.topic, count=data.count,
+                difficulty="", seed=data.seed,
+            )
+            return opentdb_quiz(relaxed)
+        return fallback_quiz(data)
+
+    cleaned = []
+    for item in payload["results"]:
+        # OpenTDB returns HTML-encoded strings, so decode them
+        question = html.unescape(item.get("question", "")).strip()
+        correct = html.unescape(item.get("correct_answer", "")).strip()
+        incorrect = [html.unescape(o).strip() for o in item.get("incorrect_answers", [])]
+
+        if not question or not correct or len(incorrect) != 3:
+            continue
+
+        options = incorrect + [correct]
+        random.shuffle(options)          # randomize position of correct answer
+        answer_index = options.index(correct)
+
+        cleaned.append({
+            "question": question,
+            "options": options,
+            "answer_index": answer_index,
+            "explanation": f"The correct answer is: {correct}.",
+        })
+
+    if not cleaned:
+        return fallback_quiz(data)
+
+    return {
+        "topic": data.topic,
+        "questions": cleaned[: data.count],
+        "note": "",
+        "source": "opentdb",
+    }
 
 _QUIZ_BANK = {
     "aptitude": [
@@ -231,7 +322,7 @@ _QUIZ_BANK = {
             "question": "20% of 250 is?",
             "options": ["40", "50", "45", "60"],
             "answer_index": 1,
-            "explanation": "20/100 × 250 = 50.",
+            "explanation": "20/100 x 250 = 50.",
         },
     ],
     "reasoning": [
@@ -239,7 +330,7 @@ _QUIZ_BANK = {
             "question": "Find the next number: 2, 6, 12, 20, ?",
             "options": ["28", "30", "32", "26"],
             "answer_index": 1,
-            "explanation": "Differences are 4, 6, 8, 10 → 20 + 10 = 30.",
+            "explanation": "Differences are 4, 6, 8, 10 -> 20 + 10 = 30.",
         },
     ],
     "python": [
@@ -266,7 +357,6 @@ _QUIZ_BANK = {
     ],
 }
 
-
 def fallback_quiz(data: QuizRequest) -> dict:
     key = data.topic.strip().lower()
     questions: List[dict] = []
@@ -276,7 +366,7 @@ def fallback_quiz(data: QuizRequest) -> dict:
             break
     note = ""
     if not questions:
-        note = "AI is not configured, so only sample questions are available. Add a Gemini key to generate questions for any topic."
+        note = "Only sample questions are available for this topic right now."
         questions = [
             {
                 "question": f"After learning the basics of '{data.topic}', what should you do first?",
@@ -292,28 +382,37 @@ def fallback_quiz(data: QuizRequest) -> dict:
         "source": "fallback",
     }
 
-
-def gemini_quiz(data: QuizRequest) -> dict:
-    gemini_client = get_gemini_client()
-    if gemini_client is None:
+def groq_quiz(data: QuizRequest) -> dict:
+    if not GROQ_API_KEY:
         return fallback_quiz(data)
 
     prompt = (
-        f"Generate {data.count} multiple-choice practice questions covering multiple related sub-domains for the topic "
-        f"'{data.topic}' at a '{data.difficulty}' difficulty level, for Indian exam/job interview preparation. "
-        f"Randomize the selection of questions (Seed: {data.seed}). Do not repeat questions from previous standard sets. "
-        "Reply ONLY with JSON of this exact shape: "
-        '{"questions": [{"question": string, "options": [string, string, string, string], '
-        '"answer_index": number (0-3), "explanation": string}]}. '
-        "Exactly 4 options each. answer_index is the 0-based index of the correct option."
+        f"You are an expert exam question creator for competitive exams (like UPSC, SSC, Banking, and IT placements).\n"
+        f"Generate exactly {data.count} multiple-choice questions (MCQs) for the topic '{data.topic}'.\n"
+        f"Difficulty level MUST strictly be '{data.difficulty}' (easy, intermediate, or hard).\n"
+        f"If the topic is 'Reasoning', generate logical reasoning, syllogisms, data sufficiency, coding-decoding, or analytical puzzles with a logical structure.\n"
+        f"Randomize the selection of questions (Seed: {data.seed}). Ensure no repetition of standard questions.\n\n"
+        "Reply ONLY with a JSON object in this exact shape (no markdown, no extra text):\n"
+        "{\n"
+        "  \"questions\": [\n"
+        "    {\n"
+        "      \"question\": \"Question text here\",\n"
+        "      \"options\": [\"Option A\", \"Option B\", \"Option C\", \"Option D\"],\n"
+        "      \"answer_index\": 0,\n"
+        "      \"explanation\": \"Step-by-step logical explanation of why the correct option is the right answer\"\n"
+        "    }\n"
+        "  ]\n"
+        "}\n\n"
+        "Rules:\n"
+        "- The 'options' list must contain exactly 4 choices.\n"
+        "- The 'answer_index' must be a 0-based integer index corresponding to the correct answer (0 to 3).\n"
     )
     try:
-        response = gemini_client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=prompt,
-        )
-        text = strip_json_fence(response.text or "")
-        result = json.loads(text)
+        response_text = query_groq(prompt, json_mode=True)
+        if not response_text:
+            return fallback_quiz(data)
+
+        result = json.loads(strip_json_fence(response_text))
         questions = result.get("questions", [])
         cleaned = []
         for q in questions:
@@ -335,30 +434,37 @@ def gemini_quiz(data: QuizRequest) -> dict:
             "topic": data.topic,
             "questions": cleaned[: data.count],
             "note": "",
-            "source": "gemini",
+            "source": "groq",
         }
     except Exception as exc:
-        logger.warning("gemini_quiz failed: %s", exc)
+        logger.warning("groq_quiz failed: %s", exc)
         fallback = fallback_quiz(data)
-        if "429" in str(exc) or "RESOURCE_EXHAUSTED" in str(exc):
-            fallback["note"] = "Gemini API Quota Exceeded (Rate Limit). Please wait or update your API key. Showing limited sample questions for now."
+        if "429" in str(exc) or "RESOURCE_EXHAUSTED" in str(exc) or "rate_limit" in str(exc).lower():
+            fallback["note"] = "Groq API Quota Exceeded (Rate Limit). Showing limited sample questions for now."
         return fallback
 
-
 # ---------------------------------------------------------------------------
-# Endpoints (public — no login needed, like Skill Gap)
+# Endpoints (public - no login needed, like Skill Gap)
 # ---------------------------------------------------------------------------
 
 @router.get("/resources")
 async def get_resources():
     return {"library": RESOURCE_LIBRARY}
 
-
 @router.post("/study-plan")
 async def study_plan(data: StudyPlanRequest):
-    return gemini_study_plan(data)
-
+    return groq_study_plan(data)
 
 @router.post("/quiz")
 async def quiz(data: QuizRequest):
-    return gemini_quiz(data)
+    # Try Groq AI first to generate tailored questions matching the exact topic and difficulty.
+    # If Groq is unavailable or fails, fall back to OpenTDB, and then to the static bank.
+    groq_res = groq_quiz(data)
+    if groq_res.get("source") == "groq":
+        return groq_res
+
+    opentdb_res = opentdb_quiz(data)
+    if opentdb_res.get("source") == "opentdb":
+        return opentdb_res
+
+    return groq_res

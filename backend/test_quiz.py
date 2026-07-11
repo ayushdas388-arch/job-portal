@@ -7,13 +7,13 @@ class QuizRequest(BaseModel):
     difficulty: str = "medium"
     seed: str = "123"
 
-from routes.prep import gemini_quiz
+from routes.prep import groq_quiz
 import sys
 
 req = QuizRequest()
-res = gemini_quiz(req)
-print("SUCCESS:", res.get("source") == "gemini")
-if res.get("source") != "gemini":
+res = groq_quiz(req)
+print("SUCCESS:", res.get("source") == "groq")
+if res.get("source") != "groq":
     print("FAILED TO GENERATE:", res)
 else:
     print(f"Generated {len(res.get('questions', []))} questions.")

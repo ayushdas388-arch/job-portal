@@ -83,112 +83,138 @@ function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-xl card-strong w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center mb-6">Register</h2>
+    <div className="wander-light-theme relative min-h-screen flex items-center justify-center p-4 overflow-hidden select-none">
+      {/* Specific HD Onboarding/Collaboration Wallpaper */}
+      <img 
+        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&auto=format&fit=crop&q=80" 
+        alt="Register background" 
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      {/* Soft Light Overlay */}
+      <div className="absolute inset-0 bg-[#f8fafc]/75 backdrop-blur-[2px]" />
 
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 mb-2">First Name*</label>
-                <input
-                  id="firstName"
-                  type="text"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  placeholder="First name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, 'lastName')}
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-2">Last Name*</label>
-                <input
-                  id="lastName"
-                  type="text"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  placeholder="Last name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, 'email')}
-                />
-              </div>
-            </div>
+      {/* Form Container */}
+      <div className="relative z-10 wander-bg-white border border-slate-200/80 p-8 rounded-3xl shadow-2xl w-full max-w-md space-y-6">
+        <div className="text-center space-y-1">
+          <div className="text-xl font-black tracking-widest wander-text-dark font-mono mb-2">
+            FUTURE<span className="text-blue-600 font-sans">.ai</span>
+          </div>
+          <h2 className="text-2xl font-black wander-text-dark tracking-tight">Create Account</h2>
+          <p className="text-xs text-slate-500 font-medium">Get started with your career dashboard</p>
+        </div>
 
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Email ID*</label>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 text-xs font-semibold p-3.5 rounded-xl text-center">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {/* Name fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold wander-text-dark uppercase tracking-wider">First Name*</label>
               <input
-                id="email"
-                type="email"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, 'phone')}
+                id="firstName"
+                type="text"
+                className="w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+                placeholder="First name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, 'lastName')}
               />
             </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Phone Number*</label>
-              <div className="flex">
-                <select
-                  className="border border-gray-300 rounded-l-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 border-r-0"
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                >
-                  <option value="+91">+91 (IN)</option>
-                  <option value="+1">+1 (US)</option>
-                  <option value="+44">+44 (UK)</option>
-                  <option value="+61">+61 (AU)</option>
-                </select>
-                <input
-                  id="phone"
-                  type="text"
-                  className="w-full border border-gray-300 rounded-r-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  placeholder="Enter 10-digit number"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, 'password')}
-                />
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Password*</label>
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold wander-text-dark uppercase tracking-wider">Last Name*</label>
               <input
-                id="password"
-                type="password"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, 'registerBtn')}
+                id="lastName"
+                type="text"
+                className="w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+                placeholder="Last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, 'email')}
               />
             </div>
+          </div>
 
-            {captchaEnabled && siteKey && (
-              <div className="mb-6 flex justify-center">
-                <Recaptcha
-                  ref={captchaRef}
-                  siteKey={siteKey}
-                  onChange={setCaptchaToken}
-                />
-              </div>
-            )}
+          {/* Email field */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-bold wander-text-dark uppercase tracking-wider">Email Address*</label>
+            <input
+              id="email"
+              type="email"
+              className="w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 'phone')}
+            />
+          </div>
 
-            <button
-              id="registerBtn"
-              onClick={handleRegister}
-              disabled={loading}
-              className="w-full neon-btn"
-            >
-              {loading ? 'Registering...' : 'Register'}
-            </button>
+          {/* Phone field */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-bold wander-text-dark uppercase tracking-wider">Phone Number*</label>
+            <div className="flex">
+              <select
+                className="bg-slate-100 hover:bg-slate-200/50 border border-slate-200 text-slate-800 text-xs rounded-l-xl px-3 py-3 border-r-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+              >
+                <option value="+91">+91 (IN)</option>
+                <option value="+1">+1 (US)</option>
+                <option value="+44">+44 (UK)</option>
+                <option value="+61">+61 (AU)</option>
+              </select>
+              <input
+                id="phone"
+                type="text"
+                className="w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-r-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+                placeholder="Enter 10-digit number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, 'password')}
+              />
+            </div>
+          </div>
 
+          {/* Password field */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-bold wander-text-dark uppercase tracking-wider">Password*</label>
+            <input
+              id="password"
+              type="password"
+              className="w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+              placeholder="Create strong password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 'registerBtn')}
+            />
+          </div>
+        </div>
 
-        <p className="text-center text-gray-600 mt-4">
+        {captchaEnabled && siteKey && (
+          <div className="flex justify-center">
+            <Recaptcha
+              ref={captchaRef}
+              siteKey={siteKey}
+              onChange={setCaptchaToken}
+            />
+          </div>
+        )}
+
+        <button
+          id="registerBtn"
+          onClick={handleRegister}
+          disabled={loading}
+          className="w-full bg-[#0f172a] hover:bg-blue-600 disabled:bg-slate-400 text-white text-xs font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg disabled:shadow-none flex items-center justify-center cursor-pointer"
+        >
+          {loading ? 'Registering...' : 'Register'}
+        </button>
+
+        <p className="text-center text-xs text-slate-500 font-semibold pt-2">
           Already have an account?{' '}
-          <Link to="/login" className="neon-outline px-3 py-1 rounded">Login</Link>
+          <Link to="/login" className="text-blue-600 hover:underline font-bold">Login</Link>
         </p>
       </div>
     </div>

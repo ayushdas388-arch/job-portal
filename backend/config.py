@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 from dotenv import load_dotenv
 import os
 
@@ -29,7 +29,7 @@ DB_NAME = os.getenv("DB_NAME", "job_portal").strip() or "job_portal"
 SECRET_KEY = _required("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256").strip() or "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = _positive_int("ACCESS_TOKEN_EXPIRE_MINUTES", 60)
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
 ADZUNA_APP_ID = os.getenv("ADZUNA_APP_ID", "").strip()
 ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY", "").strip()
 ADZUNA_COUNTRY = os.getenv("ADZUNA_COUNTRY", "in").strip().lower() or "in"

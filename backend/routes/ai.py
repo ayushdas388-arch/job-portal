@@ -9,15 +9,11 @@ import pdfplumber
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
-from config import GEMINI_API_KEY
+import httpx
+from config import GROQ_API_KEY
 from external_jobs import build_search_links, normalize_keywords, normalize_query
 
-try:
-    from google import genai
-except ImportError:
-    genai = None
-
-client = None
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
 router = APIRouter(prefix="/ai", tags=["AI"])
 
@@ -66,16 +62,70 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     return text
 
 
-def get_gemini_client():
-    global client
+def query_groq(prompt: str, json_mode: bool = False) -> str | None:
+    if not GROQ_API_KEY:
+        return None
+    try:
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": GROQ_MODEL,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.1,
+        }
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
 
-    if client is not None:
-        return client
-    if genai is None or not GEMINI_API_KEY:
+        with httpx.Client() as client:
+            response = client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
+    except Exception as exc:
+        print(f"Groq API error: {exc}")
         return None
 
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    return client
+
+async def query_groq_async(prompt: str, json_mode: bool = False) -> str | None:
+    if not GROQ_API_KEY:
+        return None
+    try:
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": GROQ_MODEL,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.1,
+        }
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
+    except Exception as exc:
+        print(f"Groq Async API error: {exc}")
+        return None
 
 
 def strip_json_fence(text: str) -> str:
@@ -184,9 +234,8 @@ def fallback_external_match(user_info: str, provided_skills: list[str] | None = 
     }
 
 
-async def gemini_external_match(user_info: str, provided_skills: list[str] | None = None) -> dict:
-    gemini_client = get_gemini_client()
-    if gemini_client is None:
+async def groq_external_match(user_info: str, provided_skills: list[str] | None = None) -> dict:
+    if not GROQ_API_KEY:
         return fallback_external_match(user_info, provided_skills)
 
     prompt = f"""
@@ -218,11 +267,11 @@ Rules:
 """
 
     try:
-        response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash-lite",
-            contents=prompt,
-        )
-        result = json.loads(strip_json_fence(response.text or ""))
+        response_text = await query_groq_async(prompt, json_mode=True)
+        if not response_text:
+            return fallback_external_match(user_info, provided_skills)
+
+        result = json.loads(strip_json_fence(response_text))
         detected_skills = normalize_keywords(result.get("detected_skills", []))
         if provided_skills:
             detected_skills = normalize_keywords([*provided_skills, *detected_skills])
@@ -253,9 +302,10 @@ Rules:
                 limit=5,
             ),
             "summary": " ".join(str(result.get("summary", "")).split()) or "Showing external job searches based on your profile.",
+            "source": "groq",
         }
     except Exception as exc:
-        print(f"Gemini external match error: {exc}. Using fallback recommendations...")
+        print(f"Groq external match error: {exc}. Using fallback recommendations...")
         return fallback_external_match(user_info, provided_skills)
 
 
@@ -265,7 +315,7 @@ async def match_resume(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Only PDF files allowed")
     content = await file.read()
     resume_text = extract_text_from_pdf(content)
-    result = await gemini_external_match(f"Resume:\n{resume_text}")
+    result = await groq_external_match(f"Resume:\n{resume_text}")
     return {
         **result,
         "total_matches": len(result["matched_jobs"]),
@@ -274,7 +324,7 @@ async def match_resume(file: UploadFile = File(...)):
 
 @router.post("/match-skills")
 async def match_skills(skills: List[str]):
-    result = await gemini_external_match(
+    result = await groq_external_match(
         f"Skills: {', '.join(skills)}",
         provided_skills=skills,
     )
@@ -355,9 +405,8 @@ def fallback_resume(data: ResumeRequest) -> dict:
     }
 
 
-def gemini_resume(data: ResumeRequest) -> dict:
-    gemini_client = get_gemini_client()
-    if gemini_client is None:
+def groq_resume(data: ResumeRequest) -> dict:
+    if not GROQ_API_KEY:
         return fallback_resume(data)
 
     payload = data.model_dump()
@@ -383,24 +432,25 @@ Return ONLY a JSON object with this exact shape (no markdown, no extra text):
 """
 
     try:
-        response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash-lite",
-            contents=prompt,
-        )
-        result = json.loads(strip_json_fence(response.text or ""))
+        response_text = query_groq(prompt, json_mode=True)
+        if not response_text:
+            return fallback_resume(data)
+
+        result = json.loads(strip_json_fence(response_text))
         result.setdefault("summary", "")
         result.setdefault("experience", [])
         result.setdefault("projects", [])
         result.setdefault("skills", data.skills)
+        result["source"] = "groq"
         return result
     except Exception as exc:
-        print(f"Gemini resume error: {exc}. Using fallback resume builder...")
+        print(f"Groq resume error: {exc}. Using fallback resume builder...")
         return fallback_resume(data)
 
 
 @router.post("/build-resume")
 async def build_resume(data: ResumeRequest):
-    generated = gemini_resume(data)
+    generated = groq_resume(data)
     return {
         "contact": {
             "full_name": data.full_name,
@@ -477,9 +527,8 @@ def fallback_skill_gap(data: SkillGapRequest) -> dict:
     }
 
 
-def gemini_skill_gap(data: SkillGapRequest) -> dict:
-    gemini_client = get_gemini_client()
-    if gemini_client is None:
+def groq_skill_gap(data: SkillGapRequest) -> dict:
+    if not GROQ_API_KEY:
         return fallback_skill_gap(data)
 
     prompt = f"""
@@ -501,23 +550,23 @@ Return ONLY a JSON object with this exact shape (no markdown, no extra text):
 """
 
     try:
-        response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash-lite",
-            contents=prompt,
-        )
-        result = json.loads(strip_json_fence(response.text or ""))
+        response_text = query_groq(prompt, json_mode=True)
+        if not response_text:
+            return fallback_skill_gap(data)
+
+        result = json.loads(strip_json_fence(response_text))
         result.setdefault("target_role", data.target_role)
         result.setdefault("readiness_percent", 0)
         result.setdefault("matched_skills", [])
         result.setdefault("missing_skills", [])
         result.setdefault("advice", "")
-        result["source"] = "gemini"
+        result["source"] = "groq"
         return result
     except Exception as exc:
-        print(f"Gemini skill gap error: {exc}. Using fallback analysis...")
+        print(f"Groq skill gap error: {exc}. Using fallback analysis...")
         return fallback_skill_gap(data)
 
 
 @router.post("/skill-gap")
 async def skill_gap(data: SkillGapRequest):
-    return gemini_skill_gap(data)
+    return groq_skill_gap(data)

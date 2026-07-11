@@ -31,6 +31,51 @@ function Dashboard() {
   const [form, setForm] = useState({ ...emptyExam })
   const [showForm, setShowForm] = useState(false)
 
+  // Profile Image state & modal control
+  const [avatar, setAvatar] = useState(localStorage.getItem('profile_image') || '')
+  const [showAvatarModal, setShowAvatarModal] = useState(false)
+
+  const avatarsList = [
+    { name: "Executive Male", url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80" },
+    { name: "Executive Female", url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&q=80" },
+    { name: "Tech Lead Male", url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&q=80" },
+    { name: "Tech Lead Female", url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&q=80" },
+    { name: "Developer Male", url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&q=80" },
+    { name: "Developer Female", url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&q=80" }
+  ]
+
+  const selectAvatar = (url) => {
+    localStorage.setItem('profile_image', url)
+    setAvatar(url)
+    setShowAvatarModal(false)
+    window.dispatchEvent(new Event('avatar-changed'))
+  }
+
+  const handleCustomPhotoUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (file.size > 1.5 * 1024 * 1024) {
+        alert("Please upload an image smaller than 1.5MB to save storage space.")
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        try {
+          const base64Url = reader.result
+          localStorage.setItem('profile_image', base64Url)
+          setAvatar(base64Url)
+          setShowAvatarModal(false)
+          window.dispatchEvent(new Event('avatar-changed'))
+        } catch (err) {
+          console.error("Local storage error:", err)
+          alert("Unable to save photo due to storage limits. Please use a smaller image.")
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -99,171 +144,286 @@ function Dashboard() {
 
   if (!token) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <h1 className="text-3xl font-bold text-slate-900 mb-3">📊 Dashboard</h1>
-        <p className="text-slate-500 mb-6">Login to view the dashboard.</p>
-        <Link to="/login" className="neon-btn">Login</Link>
+      <div className="wander-light-theme relative min-h-screen flex items-center justify-center p-4 overflow-hidden select-none">
+        <img 
+          src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80" 
+          alt="Dashboard background" 
+          className="absolute inset-0 w-full h-full object-cover opacity-95"
+        />
+        <div className="absolute inset-0 bg-[#f8fafc]/75 backdrop-blur-[2px]" />
+        
+        <div className="relative z-10 wander-bg-white border border-slate-200/80 p-8 rounded-3xl shadow-2xl w-full max-w-md text-center space-y-6">
+          <div className="text-xl font-black tracking-widest wander-text-dark font-mono mb-2">
+            FUTURE<span className="text-blue-600 font-sans">.ai</span>
+          </div>
+          <h1 className="text-2xl font-black wander-text-dark tracking-tight">📊 Dashboard</h1>
+          <p className="text-xs text-slate-500 font-medium mb-6">Login to view the dashboard.</p>
+          <Link to="/login" className="w-full bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer">
+            Login
+          </Link>
+        </div>
       </div>
     )
   }
 
   const stats = data?.stats || { total_exams: 0, upcoming_exams: 0, saved_jobs: 0, avg_progress: 0 }
-  // Modern input classes
-  const inputClass = 'w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all bg-slate-50/50'
+  // Modern light input classes
+  const inputClass = 'w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium'
 
   return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-        <p className="text-slate-500 mt-1">Welcome back, {name}! Track your preparation here.</p>
-      </div>
+    <div className="wander-light-theme min-h-screen p-4 md:p-8 md:pl-24 flex flex-col font-sans select-none overflow-x-hidden">
+      <div className="max-w-7xl mx-auto w-full space-y-12">
+        {/* Page Header with Profile Card */}
+        <div className="wander-bg-white rounded-3xl border border-slate-200/80 p-6 wander-badge-shadow flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
+            {/* Avatar frame */}
+            <div className="relative group cursor-pointer" onClick={() => setShowAvatarModal(true)}>
+              {avatar ? (
+                <img 
+                  src={avatar} 
+                  alt="Profile Avatar" 
+                  className="w-20 h-20 rounded-full object-cover border-4 border-blue-500/20 shadow-md transition-all group-hover:brightness-90"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center text-3xl font-bold text-blue-600 border-4 border-blue-500/20 shadow-md transition-all group-hover:bg-blue-100">
+                  {name ? name.charAt(0).toUpperCase() : 'U'}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                Change Photo
+              </div>
+            </div>
 
-      <div className="space-y-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          <StatCard label="Total Exams" value={stats.total_exams} />
-          <StatCard label="Upcoming" value={stats.upcoming_exams} />
-          <StatCard label="Saved Jobs" value={stats.saved_jobs} />
-          <StatCard label="Avg Progress" value={`${stats.avg_progress}%`} />
-        </div>
-
-        {loading && <p className="text-center text-slate-400 font-medium py-4">Loading your data...</p>}
-
-        {/* Upcoming exams + deadlines */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Panel title="🗓️ Upcoming Exams">
-            {data?.upcoming_exams?.length ? (
-              <ul className="space-y-3">
-                {data.upcoming_exams.map((e, i) => {
-                  const d = daysLeft(e.exam_date)
-                  return (
-                    <li key={i} className="flex justify-between items-center text-sm p-3 bg-slate-50 rounded-lg border border-slate-100">
-                      <span className="font-semibold text-slate-800">{e.name}</span>
-                      <span className="text-slate-500 text-xs font-medium">
-                        {e.exam_date}{d !== null && d >= 0 ? ` · ${d} days left` : ''}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-            ) : (
-              <Empty text="No upcoming exams. Add one below." />
-            )}
-          </Panel>
-
-          <Panel title="⏰ Application Deadlines">
-            {data?.deadlines?.length ? (
-              <ul className="space-y-3">
-                {data.deadlines.map((d, i) => {
-                  const left = daysLeft(d.last_date_to_apply)
-                  return (
-                    <li key={i} className="flex justify-between items-center text-sm p-3 bg-slate-50 rounded-lg border border-slate-100">
-                      <span className="font-semibold text-slate-800">{d.exam}</span>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-md ${left !== null && left <= 7 ? 'bg-red-50 text-red-600' : 'bg-slate-200 text-slate-600'}`}>
-                        {d.last_date_to_apply}{left !== null && left >= 0 ? ` (${left}d)` : ''}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-            ) : (
-              <Empty text="No deadlines set." />
-            )}
-          </Panel>
-        </div>
-
-        {/* Preparation progress + manage exams */}
-        <Panel title="📈 Preparation Progress">
-          <div className="flex justify-between items-center mb-6">
-            <p className="text-sm text-slate-500">Update your syllabus completion status.</p>
-            <button onClick={() => setShowForm((s) => !s)} className="neon-outline text-sm px-4 py-2">
-              {showForm ? 'Close Form' : '+ Add Exam'}
-            </button>
+            <div className="space-y-1">
+              <div className="flex flex-col md:flex-row md:items-center gap-2">
+                <h1 className="text-2xl font-extrabold wander-text-dark tracking-tight">{name || 'User'}</h1>
+                <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-blue-200/50 shrink-0 self-center uppercase tracking-wider">
+                  Candidate
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium">Track your job applications and exam preparations here</p>
+            </div>
           </div>
 
-          {showForm && (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-600 mb-1 block uppercase tracking-wider">Exam Name *</label>
-                  <input className={inputClass} placeholder="e.g. SSC CGL" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600 mb-1 block uppercase tracking-wider">Category</label>
-                  <input className={inputClass} placeholder="e.g. Banking" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600 mb-1 block uppercase tracking-wider">Exam Date</label>
-                  <input type="date" className={inputClass} value={form.exam_date} onChange={(e) => setForm({ ...form, exam_date: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600 mb-1 block uppercase tracking-wider">Last Date to Apply</label>
-                  <input type="date" className={inputClass} value={form.last_date_to_apply} onChange={(e) => setForm({ ...form, last_date_to_apply: e.target.value })} />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-600 mb-1 block uppercase tracking-wider">Official Link (Optional)</label>
-                <input className={inputClass} placeholder="https://..." value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} />
-              </div>
-              <button onClick={addExam} className="neon-btn w-full py-3">Save Exam Details</button>
-            </div>
-          )}
+          <button 
+            onClick={() => setShowAvatarModal(true)} 
+            className="border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs px-4 py-2.5 rounded-full font-bold shadow-sm transition-all cursor-pointer"
+          >
+            Change Profile Photo
+          </button>
+        </div>
 
-          {exams.length ? (
-            <div className="space-y-6">
-              {exams.map((e) => (
-                <div key={e.id} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div className="flex justify-between items-center mb-3">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-slate-800 text-base">{e.name}</span>
-                      {e.category && <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">{e.category}</span>}
+        {/* Avatar Picker Modal */}
+        {showAvatarModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-200 w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200 text-slate-800">
+              <h2 className="text-xl font-extrabold text-slate-900 mb-1 tracking-tight">Select Profile Photo</h2>
+              <p className="text-xs text-slate-500 mb-6 font-semibold">Choose a high-definition professional headshot to update your profile.</p>
+              
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                {avatarsList.map((av, index) => (
+                  <div 
+                    key={index} 
+                    onClick={() => selectAvatar(av.url)} 
+                    className={`cursor-pointer rounded-xl overflow-hidden border-2 relative group hover:border-blue-500 hover:scale-105 transition-all ${avatar === av.url ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200'}`}
+                  >
+                    <img src={av.url} alt={av.name} className="w-full h-24 object-cover" />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-slate-200 pt-4 mb-4">
+                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                  Or upload your own photo
+                </label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleCustomPhotoUpload} 
+                  className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 file:cursor-pointer"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                {avatar && (
+                  <button 
+                    onClick={() => {
+                      localStorage.removeItem('profile_image');
+                      setAvatar('');
+                      setShowAvatarModal(false);
+                      window.dispatchEvent(new Event('avatar-changed'));
+                    }}
+                    className="px-4 py-2 border border-red-200 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 transition-all mr-auto cursor-pointer"
+                  >
+                    Remove Photo
+                  </button>
+                )}
+                <button 
+                  onClick={() => setShowAvatarModal(false)}
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-600 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-8">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <StatCard label="Total Exams" value={stats.total_exams} />
+            <StatCard label="Upcoming" value={stats.upcoming_exams} />
+            <StatCard label="Saved Jobs" value={stats.saved_jobs} />
+            <StatCard label="Avg Progress" value={`${stats.avg_progress}%`} />
+          </div>
+
+          {loading && <p className="text-center text-slate-500 font-medium py-4">Loading your data...</p>}
+
+          {/* Upcoming exams + deadlines */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <Panel title="🗓️ Upcoming Exams">
+              {data?.upcoming_exams?.length ? (
+                <ul className="space-y-3">
+                  {data.upcoming_exams.map((e, i) => {
+                    const d = daysLeft(e.exam_date)
+                    return (
+                      <li key={i} className="flex justify-between items-center text-sm p-3.5 wander-bg-gray rounded-xl border border-slate-200/60">
+                        <span className="font-bold wander-text-dark">{e.name}</span>
+                        <span className="text-slate-500 text-xs font-semibold bg-white/85 px-3 py-1 rounded-full border border-slate-200/60 shadow-sm">
+                          {e.exam_date}{d !== null && d >= 0 ? ` · ${d} days left` : ''}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              ) : (
+                <Empty text="No upcoming exams. Add one below." />
+              )}
+            </Panel>
+
+            <Panel title="⏰ Application Deadlines">
+              {data?.deadlines?.length ? (
+                <ul className="space-y-3">
+                  {data.deadlines.map((d, i) => {
+                    const left = daysLeft(d.last_date_to_apply)
+                    return (
+                      <li key={i} className="flex justify-between items-center text-sm p-3.5 wander-bg-gray rounded-xl border border-slate-200/60">
+                        <span className="font-bold wander-text-dark">{d.exam}</span>
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full border ${left !== null && left <= 7 ? 'bg-red-50 text-red-600 border-red-200' : 'bg-white/85 text-slate-600 border-slate-200/60 shadow-sm'}`}>
+                          {d.last_date_to_apply}{left !== null && left >= 0 ? ` (${left}d)` : ''}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              ) : (
+                <Empty text="No deadlines set." />
+              )}
+            </Panel>
+          </div>
+
+          {/* Preparation progress + manage exams */}
+          <Panel title="📈 Preparation Progress">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-xs text-slate-500 font-semibold">Update your syllabus completion status.</p>
+              <button 
+                onClick={() => setShowForm((s) => !s)} 
+                className="bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer whitespace-nowrap"
+              >
+                {showForm ? 'Close Form' : '+ Add Exam'}
+              </button>
+            </div>
+
+            {showForm && (
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-600 mb-1 block uppercase tracking-wider">Exam Name *</label>
+                    <input className={inputClass} placeholder="e.g. SSC CGL" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-600 mb-1 block uppercase tracking-wider">Category</label>
+                    <input className={inputClass} placeholder="e.g. Banking" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-600 mb-1 block uppercase tracking-wider">Exam Date</label>
+                    <input type="date" className={inputClass} value={form.exam_date} onChange={(e) => setForm({ ...form, exam_date: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-600 mb-1 block uppercase tracking-wider">Last Date to Apply</label>
+                    <input type="date" className={inputClass} value={form.last_date_to_apply} onChange={(e) => setForm({ ...form, last_date_to_apply: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-600 mb-1 block uppercase tracking-wider">Official Link (Optional)</label>
+                  <input className={inputClass} placeholder="https://..." value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} />
+                </div>
+                <button 
+                  onClick={addExam} 
+                  className="w-full bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-bold py-3 rounded-xl transition-all shadow-md cursor-pointer"
+                >
+                  Save Exam Details
+                </button>
+              </div>
+            )}
+
+            {exams.length ? (
+              <div className="space-y-6">
+                {exams.map((e) => (
+                  <div key={e.id} className="p-5 border border-slate-200/80 rounded-2xl wander-bg-gray/50 hover:bg-slate-50 transition-all">
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex flex-col">
+                        <span className="font-extrabold wander-text-dark text-base">{e.name}</span>
+                        {e.category && <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">{e.category}</span>}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-blue-600 font-bold bg-blue-50 border border-blue-200/50 px-2.5 py-0.5 rounded-full text-xs">{e.progress}% Completed</span>
+                        <button onClick={() => deleteExam(e.id)} className="text-red-500 text-xs font-bold hover:text-red-700 transition-colors cursor-pointer">Remove</button>
+                      </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-indigo-600 font-bold bg-indigo-50 px-2 py-1 rounded-md text-sm">{e.progress}%</span>
-                      <button onClick={() => deleteExam(e.id)} className="text-red-500 text-xs font-semibold hover:underline">Remove</button>
+                      <div className="flex-1 bg-slate-200 rounded-full h-2.5 overflow-hidden border border-slate-300/40">
+                        <div className="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${e.progress}%` }} />
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={e.progress}
+                        onChange={(ev) => updateProgress(e.id, Number(ev.target.value))}
+                        className="w-24 md:w-32 accent-blue-600 cursor-pointer"
+                      />
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 bg-slate-200 rounded-full h-3 overflow-hidden">
-                      <div className="bg-indigo-500 h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${e.progress}%` }} />
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={e.progress}
-                      onChange={(ev) => updateProgress(e.id, Number(ev.target.value))}
-                      className="w-24 md:w-32 accent-indigo-600 cursor-pointer"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Empty text="No exams added yet." />
-          )}
-        </Panel>
+                ))}
+              </div>
+            ) : (
+              <Empty text="No exams added yet." />
+            )}
+          </Panel>
 
-        {/* Saved jobs */}
-        <Panel title="🔖 Saved Jobs">
-          {savedJobs.length ? (
-            <div className="grid md:grid-cols-2 gap-4">
-              {savedJobs.map((j) => (
-                <div key={j.id} className="border border-slate-200 rounded-xl p-4 flex justify-between items-start hover:shadow-md transition-shadow bg-white">
-                  <div>
-                    <p className="font-bold text-slate-800 text-sm mb-1">{j.name}</p>
-                    {j.description && <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-2">{j.description}</p>}
-                    {j.link && <a href={j.link} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"><BrandIcon url={j.link} className="w-3 h-3" /> Visit Link <span aria-hidden="true">&rarr;</span></a>}
+          {/* Saved jobs */}
+          <Panel title="🔖 Saved Jobs">
+            {savedJobs.length ? (
+              <div className="grid md:grid-cols-2 gap-4">
+                {savedJobs.map((j) => (
+                  <div key={j.id} className="border border-slate-200/80 wander-bg-white rounded-2xl p-4 flex justify-between items-start hover:shadow-md transition-shadow">
+                    <div>
+                      <p className="font-bold wander-text-dark text-sm mb-1">{j.name}</p>
+                      {j.description && <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-2">{j.description}</p>}
+                      {j.link && <a href={j.link} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1"><BrandIcon url={j.link} className="w-3 h-3" /> Visit Link <span aria-hidden="true">&rarr;</span></a>}
+                    </div>
+                    <button onClick={() => removeSaved(j.id)} className="text-red-500 text-xs font-bold hover:text-red-700 transition-colors cursor-pointer shrink-0 ml-3">Remove</button>
                   </div>
-                  <button onClick={() => removeSaved(j.id)} className="text-red-500 text-xs font-semibold hover:underline shrink-0 ml-3">Remove</button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Empty text="Save any job from the Jobs page with 🔖 and it will appear here." />
-          )}
-        </Panel>
+                ))}
+              </div>
+            ) : (
+              <Empty text="Save any job from the Jobs page with 🔖 and it will appear here." />
+            )}
+          </Panel>
+        </div>
       </div>
     </div>
   )
@@ -272,17 +432,17 @@ function Dashboard() {
 // Modernized Sub-components
 function StatCard({ label, value }) {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center transition-all hover:shadow-md">
-      <p className="text-3xl md:text-4xl font-extrabold text-indigo-600">{value}</p>
-      <p className="text-sm font-semibold text-slate-500 mt-2 tracking-wide">{label}</p>
+    <div className="wander-bg-white p-6 rounded-3xl border border-slate-200/80 wander-badge-shadow flex flex-col justify-center transition-all hover:shadow-md">
+      <p className="text-3xl md:text-4xl font-extrabold text-blue-600">{value}</p>
+      <p className="text-xs font-bold text-slate-400 mt-2 tracking-wider uppercase">{label}</p>
     </div>
   )
 }
 
 function Panel({ title, children }) {
   return (
-    <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
-      <h2 className="text-xl font-bold text-slate-800 mb-6">{title}</h2>
+    <div className="wander-bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 wander-badge-shadow">
+      <h2 className="text-xl font-extrabold wander-text-dark mb-6 tracking-tight">{title}</h2>
       {children}
     </div>
   )
@@ -290,8 +450,8 @@ function Panel({ title, children }) {
 
 function Empty({ text }) {
   return (
-    <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-      <p className="text-sm font-medium text-slate-500">{text}</p>
+    <div className="text-center py-8 wander-bg-gray rounded-2xl border border-dashed border-slate-300">
+      <p className="text-sm font-semibold text-slate-400">{text}</p>
     </div>
   )
 }

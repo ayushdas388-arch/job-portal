@@ -62,36 +62,58 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-xl card-strong w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center mb-6">Login</h2>
+    <div className="wander-light-theme relative min-h-screen flex items-center justify-center p-4 overflow-hidden select-none">
+      {/* Specific HD Career Wallpaper */}
+      <img 
+        src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80" 
+        alt="Login background" 
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      {/* Soft Light Overlay */}
+      <div className="absolute inset-0 bg-[#f8fafc]/75 backdrop-blur-[2px]" />
 
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Email</label>
-          <input
-            type="email"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+      {/* Form Container */}
+      <div className="relative z-10 wander-bg-white border border-slate-200/80 p-8 rounded-3xl shadow-2xl w-full max-w-md space-y-6">
+        <div className="text-center space-y-1">
+          <div className="text-xl font-black tracking-widest wander-text-dark font-mono mb-2">
+            FUTURE<span className="text-blue-600 font-sans">.ai</span>
+          </div>
+          <h2 className="text-2xl font-black wander-text-dark tracking-tight">Welcome Back</h2>
+          <p className="text-xs text-slate-500 font-medium">Please enter your credentials to login</p>
         </div>
 
-        <div className="mb-6">
-          <label className="block text-gray-700 mb-2">Password</label>
-          <input
-            type="password"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 text-xs font-semibold p-3.5 rounded-xl text-center">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-bold wander-text-dark uppercase tracking-wider">Email Address</label>
+            <input
+              type="email"
+              className="w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-bold wander-text-dark uppercase tracking-wider">Password</label>
+            <input
+              type="password"
+              className="w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
         </div>
 
         {captchaEnabled && siteKey && (
-          <div className="mb-6 flex justify-center">
+          <div className="flex justify-center">
             <Recaptcha
               ref={captchaRef}
               siteKey={siteKey}
@@ -103,14 +125,14 @@ function Login() {
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="w-full neon-btn"
+          className="w-full bg-[#0f172a] hover:bg-blue-600 disabled:bg-slate-400 text-white text-xs font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg disabled:shadow-none flex items-center justify-center cursor-pointer"
         >
           {loading ? 'Logging in...' : 'Login'}
         </button>
 
-        <p className="text-center text-gray-600 mt-4">
+        <p className="text-center text-xs text-slate-500 font-semibold pt-2">
           Don't have an account?{' '}
-          <Link to="/register" className="neon-outline px-3 py-1 rounded">Register</Link>
+          <Link to="/register" className="text-blue-600 hover:underline font-bold">Register</Link>
         </p>
       </div>
     </div>
