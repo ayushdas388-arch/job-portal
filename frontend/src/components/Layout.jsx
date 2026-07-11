@@ -6,7 +6,7 @@ function Layout({ children }) {
   const navigate = useNavigate();
   const userName = localStorage.getItem('name') || 'Guest User';
   const token = localStorage.getItem('token');
-  
+
   const [avatarUrl, setAvatarUrl] = useState(localStorage.getItem('profile_image') || '');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -45,7 +45,8 @@ function Layout({ children }) {
     { name: 'AI Match', path: '/ai-match' },
     { name: 'Resume Builder', path: '/resume-builder' },
     { name: 'Skill Gap', path: '/skill-gap' },
-    { name: 'Tracker', path: '/applications', auth: true }, 
+    { name: 'Tracker', path: '/applications', auth: true },
+    { name: 'ATS Score', path: '/ats' },
     { name: 'Preparation', path: '/prep' },
     { name: 'Admit Cards/Results', path: '/updates' },
     { name: 'AI Interview', path: '/ai-interview' },
@@ -68,25 +69,25 @@ function Layout({ children }) {
 
   return (
     <div className="flex h-screen bg-slate-900 font-sans text-slate-100 relative overflow-hidden">
-      
+
       {/* Backdrop for overlay drawer */}
       {isSidebarOpen && (
-        <div 
-          onClick={() => setIsSidebarOpen(false)} 
+        <div
+          onClick={() => setIsSidebarOpen(false)}
           className="fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-40 transition-opacity duration-300"
         />
       )}
 
       {/* Sidebar Navigation Drawer (Light themed matching Home page) */}
-      <aside 
+      <aside
         onMouseLeave={() => setIsSidebarOpen(false)}
         className={`fixed top-0 bottom-0 left-0 w-64 wander-bg-white border-r border-slate-200 flex flex-col shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Subtle Aesthetic Wallpaper watermark */}
         <div className="absolute inset-0 opacity-[0.15] pointer-events-none select-none z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80" 
-            alt="Minimalist abstract wallpaper background" 
+          <img
+            src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80"
+            alt="Minimalist abstract wallpaper background"
             className="w-full h-full object-cover"
           />
         </div>
@@ -96,15 +97,15 @@ function Layout({ children }) {
           <Link to="/" onClick={() => setIsSidebarOpen(false)} className="text-2xl font-black tracking-widest text-[#0f172a] font-mono">
             FUTURE<span className="text-blue-600 font-sans">.ai</span>
           </Link>
-          <button 
-            onClick={() => setIsSidebarOpen(false)} 
+          <button
+            onClick={() => setIsSidebarOpen(false)}
             className="text-slate-400 hover:text-slate-800 font-bold p-1 text-sm cursor-pointer transition-colors"
             title="Close Menu"
           >
             ✕
           </button>
         </div>
-        
+
         {/* Navigation Links */}
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto relative z-10">
           {navItems.filter(item => !item.auth || token).map((item) => {
@@ -114,11 +115,10 @@ function Layout({ children }) {
                 key={item.name}
                 to={item.path}
                 onClick={() => setIsSidebarOpen(false)}
-                className={`flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-blue-50 text-blue-600 shadow-sm border border-blue-100/80' 
+                className={`flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${isActive
+                    ? 'bg-blue-50 text-blue-600 shadow-sm border border-blue-100/80'
                     : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
-                }`}
+                  }`}
               >
                 {item.name}
               </Link>
@@ -132,9 +132,9 @@ function Layout({ children }) {
             <div className="flex items-center justify-between px-2 py-2">
               <div className="flex items-center gap-3">
                 {avatarUrl ? (
-                  <img 
-                    src={avatarUrl} 
-                    alt="User Profile" 
+                  <img
+                    src={avatarUrl}
+                    alt="User Profile"
                     className="w-9 h-9 rounded-full object-cover shadow-sm border border-blue-500/20"
                   />
                 ) : (
@@ -149,10 +149,10 @@ function Layout({ children }) {
               </div>
             </div>
           ) : (
-             <div className="flex flex-col gap-2">
-                <Link to="/login" onClick={() => setIsSidebarOpen(false)} className="text-center text-sm text-slate-600 hover:text-blue-600 font-bold py-1">Login</Link>
-                <Link to="/register" onClick={() => setIsSidebarOpen(false)} className="bg-[#0f172a] text-white hover:bg-blue-600 text-center text-sm py-2.5 rounded-xl font-bold transition-all shadow-sm">Register</Link>
-             </div>
+            <div className="flex flex-col gap-2">
+              <Link to="/login" onClick={() => setIsSidebarOpen(false)} className="text-center text-sm text-slate-600 hover:text-blue-600 font-bold py-1">Login</Link>
+              <Link to="/register" onClick={() => setIsSidebarOpen(false)} className="bg-[#0f172a] text-white hover:bg-blue-600 text-center text-sm py-2.5 rounded-xl font-bold transition-all shadow-sm">Register</Link>
+            </div>
           )}
         </div>
       </aside>
@@ -161,7 +161,7 @@ function Layout({ children }) {
       <main className="flex-1 overflow-y-auto bg-slate-900 relative">
         {/* Floating Hamburger Toggle Menu on Non-Home Pages */}
         {!isSidebarOpen && !isHome && (
-          <button 
+          <button
             onMouseEnter={() => setIsSidebarOpen(true)}
             onClick={() => setIsSidebarOpen(true)}
             className="fixed top-6 left-6 z-30 p-2.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-lg text-slate-200 shadow-lg cursor-pointer flex flex-col justify-center items-center gap-1 w-10 h-10 hover:scale-105 transition-all"

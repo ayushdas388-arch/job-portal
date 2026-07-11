@@ -10,7 +10,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from config import CORS_ORIGINS
 from database import close_database, ensure_indexes, ping_database
 from rate_limit import limiter
-from routes import ai, applications, auth, dashboard, eligibility, jobs, notifications, prep
+from routes import ai, applications, ats, auth, dashboard, eligibility, interview, jobs, notifications, prep
 from routes import interview
 
 
@@ -70,6 +70,7 @@ app.include_router(notifications.router)
 app.include_router(prep.router)
 app.include_router(eligibility.router)
 app.include_router(interview.router)
+app.include_router(ats.router)
 
 
 @app.get("/")

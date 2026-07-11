@@ -570,3 +570,95 @@ Return ONLY a JSON object with this exact shape (no markdown, no extra text):
 @router.post("/skill-gap")
 async def skill_gap(data: SkillGapRequest):
     return groq_skill_gap(data)
+
+
+class RoadmapRequest(BaseModel):
+    target_role: str = Field(min_length=1, max_length=120)
+
+
+def fallback_roadmap(target_role: str) -> List[dict]:
+    # Look up default skills for target role to customize the steps slightly
+    skills = _required_skills_for_role(target_role)
+    skills_str = ", ".join(skills) if skills else "relevant industry tools"
+    
+    return [
+        { "step": 1, "title": "Foundation & Fundamentals", "desc": f"Learn the absolute basics and core concepts required for a {target_role} path, focusing on {skills_str}." },
+        { "step": 2, "title": "Hands-on Practical Training", "desc": "Build 3-4 small, target-oriented practical exercises to gain confidence and experience." },
+        { "step": 3, "title": "Advanced Frameworks & Architecture", "desc": "Understand popular modern developer toolings, design patterns, and scaling strategies." },
+        { "step": 4, "title": "Resume & Portfolio Optimization", "desc": "Create a strong professional portfolio website showing off your practical builds, and align your resume." },
+        { "step": 5, "title": "Job Search, Networking & Interview Prep", "desc": "Practice technical interviews, prepare for coding challenges, and begin application outreach." }
+    ]
+
+
+def groq_roadmap(target_role: str) -> List[dict]:
+    if not GROQ_API_KEY:
+        return fallback_roadmap(target_role)
+
+    prompt = f"""
+You are an elite career counselor and industry mentor. Generate a structured step-by-step career roadmap for someone trying to become a "{target_role}".
+
+Provide a logical sequence of 5 distinct phases/steps.
+For each step, include:
+- A numeric step number (1 to 5)
+- A concise title (e.g., "Learn Backend Foundations")
+- An encouraging, detailed description containing specific technologies, topics, and actions the candidate must take during this step.
+
+Return ONLY a JSON object with this exact shape (do not wrap in markdown or add extra chat text, return raw JSON):
+{{
+  "roadmap": [
+    {{
+      "step": 1,
+      "title": "Foundation & Syntax",
+      "desc": "Detailed explanation of what to learn and build in step 1."
+    }},
+    {{
+      "step": 2,
+      "title": "...",
+      "desc": "..."
+    }},
+    {{
+      "step": 3,
+      "title": "...",
+      "desc": "..."
+    }},
+    {{
+      "step": 4,
+      "title": "...",
+      "desc": "..."
+    }},
+    {{
+      "step": 5,
+      "title": "...",
+      "desc": "..."
+    }}
+  ]
+}}
+"""
+    try:
+        response_text = query_groq(prompt, json_mode=True)
+        if not response_text:
+            return fallback_roadmap(target_role)
+
+        result = json.loads(strip_json_fence(response_text))
+        steps = result.get("roadmap", [])
+        if not isinstance(steps, list) or len(steps) == 0:
+            return fallback_roadmap(target_role)
+
+        # Standardize structure to ensure steps are sorted and well-formed
+        formatted = []
+        for index, item in enumerate(steps, start=1):
+            formatted.append({
+                "step": int(item.get("step") or index),
+                "title": str(item.get("title") or f"Phase {index}"),
+                "desc": str(item.get("desc") or "Learn the required tools for this step.")
+            })
+        return formatted
+    except Exception as exc:
+        print(f"Groq roadmap error: {exc}. Using fallback roadmap...")
+        return fallback_roadmap(target_role)
+
+
+@router.post("/roadmap")
+async def get_roadmap(data: RoadmapRequest):
+    return groq_roadmap(data.target_role)
+

@@ -15,11 +15,10 @@ exams_collection = db["exams"]
 saved_jobs_collection = db["saved_jobs"]
 applications_collection = db["applications"]
 notification_settings_collection = db["notification_settings"]
-
+ats_scores_collection = db["ats_scores"]
 
 async def ping_database() -> None:
     await client.admin.command("ping")
-
 
 async def ensure_indexes() -> None:
     await users_collection.create_index(
@@ -52,7 +51,10 @@ async def ensure_indexes() -> None:
         unique=True,
         name="notification_settings_by_user",
     )
-
+    await ats_scores_collection.create_index(
+        [("user_id", ASCENDING), ("created_at", DESCENDING)],
+        name="ats_scores_by_user_date",
+    )
 
 def close_database() -> None:
     client.close()

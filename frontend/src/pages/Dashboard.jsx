@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
+import ATSHistoryPanel from '../components/ATSHistoryPanel'
 
 const emptyExam = {
   name: '',
@@ -145,13 +146,13 @@ function Dashboard() {
   if (!token) {
     return (
       <div className="wander-light-theme relative min-h-screen flex items-center justify-center p-4 overflow-hidden select-none">
-        <img 
-          src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80" 
-          alt="Dashboard background" 
+        <img
+          src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80"
+          alt="Dashboard background"
           className="absolute inset-0 w-full h-full object-cover opacity-95"
         />
         <div className="absolute inset-0 bg-[#f8fafc]/75 backdrop-blur-[2px]" />
-        
+
         <div className="relative z-10 wander-bg-white border border-slate-200/80 p-8 rounded-3xl shadow-2xl w-full max-w-md text-center space-y-6">
           <div className="text-xl font-black tracking-widest wander-text-dark font-mono mb-2">
             FUTURE<span className="text-blue-600 font-sans">.ai</span>
@@ -179,9 +180,9 @@ function Dashboard() {
             {/* Avatar frame */}
             <div className="relative group cursor-pointer" onClick={() => setShowAvatarModal(true)}>
               {avatar ? (
-                <img 
-                  src={avatar} 
-                  alt="Profile Avatar" 
+                <img
+                  src={avatar}
+                  alt="Profile Avatar"
                   className="w-20 h-20 rounded-full object-cover border-4 border-blue-500/20 shadow-md transition-all group-hover:brightness-90"
                 />
               ) : (
@@ -205,8 +206,8 @@ function Dashboard() {
             </div>
           </div>
 
-          <button 
-            onClick={() => setShowAvatarModal(true)} 
+          <button
+            onClick={() => setShowAvatarModal(true)}
             className="border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs px-4 py-2.5 rounded-full font-bold shadow-sm transition-all cursor-pointer"
           >
             Change Profile Photo
@@ -219,12 +220,12 @@ function Dashboard() {
             <div className="bg-white border border-slate-200 w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200 text-slate-800">
               <h2 className="text-xl font-extrabold text-slate-900 mb-1 tracking-tight">Select Profile Photo</h2>
               <p className="text-xs text-slate-500 mb-6 font-semibold">Choose a high-definition professional headshot to update your profile.</p>
-              
+
               <div className="grid grid-cols-3 gap-4 mb-6">
                 {avatarsList.map((av, index) => (
-                  <div 
-                    key={index} 
-                    onClick={() => selectAvatar(av.url)} 
+                  <div
+                    key={index}
+                    onClick={() => selectAvatar(av.url)}
                     className={`cursor-pointer rounded-xl overflow-hidden border-2 relative group hover:border-blue-500 hover:scale-105 transition-all ${avatar === av.url ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200'}`}
                   >
                     <img src={av.url} alt={av.name} className="w-full h-24 object-cover" />
@@ -237,17 +238,17 @@ function Dashboard() {
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
                   Or upload your own photo
                 </label>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleCustomPhotoUpload} 
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCustomPhotoUpload}
                   className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 file:cursor-pointer"
                 />
               </div>
 
               <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
                 {avatar && (
-                  <button 
+                  <button
                     onClick={() => {
                       localStorage.removeItem('profile_image');
                       setAvatar('');
@@ -259,7 +260,7 @@ function Dashboard() {
                     Remove Photo
                   </button>
                 )}
-                <button 
+                <button
                   onClick={() => setShowAvatarModal(false)}
                   className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-600 transition-colors cursor-pointer"
                 >
@@ -328,8 +329,8 @@ function Dashboard() {
           <Panel title="📈 Preparation Progress">
             <div className="flex justify-between items-center mb-6">
               <p className="text-xs text-slate-500 font-semibold">Update your syllabus completion status.</p>
-              <button 
-                onClick={() => setShowForm((s) => !s)} 
+              <button
+                onClick={() => setShowForm((s) => !s)}
                 className="bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer whitespace-nowrap"
               >
                 {showForm ? 'Close Form' : '+ Add Exam'}
@@ -360,8 +361,8 @@ function Dashboard() {
                   <label className="text-[10px] font-bold text-slate-600 mb-1 block uppercase tracking-wider">Official Link (Optional)</label>
                   <input className={inputClass} placeholder="https://..." value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} />
                 </div>
-                <button 
-                  onClick={addExam} 
+                <button
+                  onClick={addExam}
                   className="w-full bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-bold py-3 rounded-xl transition-all shadow-md cursor-pointer"
                 >
                   Save Exam Details
@@ -405,6 +406,7 @@ function Dashboard() {
           </Panel>
 
           {/* Saved jobs */}
+          <ATSHistoryPanel />
           <Panel title="🔖 Saved Jobs">
             {savedJobs.length ? (
               <div className="grid md:grid-cols-2 gap-4">

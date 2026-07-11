@@ -5,11 +5,10 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 
-from database import exams_collection, saved_jobs_collection
+from database import ats_scores_collection, exams_collection, saved_jobs_collection
 from routes.auth import get_current_user
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
-
 
 # ---------------------------------------------------------------------------
 # Models
@@ -28,7 +27,6 @@ def _clean_date(value: Optional[str]) -> Optional[str]:
         raise ValueError("Date must be in YYYY-MM-DD format") from exc
     return value
 
-
 class ExamCreate(BaseModel):
     name: str = Field(min_length=1, max_length=150)
     category: str = Field(default="", max_length=80)
@@ -41,7 +39,6 @@ class ExamCreate(BaseModel):
     @classmethod
     def validate_dates(cls, value):
         return _clean_date(value)
-
 
 class ExamUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=150)
@@ -56,13 +53,11 @@ class ExamUpdate(BaseModel):
     def validate_dates(cls, value):
         return _clean_date(value)
 
-
 class SavedJobCreate(BaseModel):
     name: str = Field(min_length=1, max_length=150)
     description: str = Field(default="", max_length=300)
     link: str = Field(default="", max_length=300)
     category: str = Field(default="", max_length=80)
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -79,7 +74,6 @@ def _exam_helper(doc: dict) -> dict:
         "progress": doc.get("progress", 0),
     }
 
-
 def _saved_job_helper(doc: dict) -> dict:
     return {
         "id": str(doc["_id"]),
@@ -89,12 +83,24 @@ def _saved_job_helper(doc: dict) -> dict:
         "category": doc.get("category", ""),
     }
 
+def _ats_helper(doc: dict) -> dict:
+    created = doc.get("created_at")
+    return {
+        "id": str(doc["_id"]),
+        "file_name": doc.get("file_name", ""),
+        "target_role": doc.get("target_role", ""),
+        "had_jd": doc.get("had_jd", False),
+        "score": doc.get("score", 0),
+        "rating": doc.get("rating", ""),
+        "matched_count": doc.get("matched_count", 0),
+        "missing_count": doc.get("missing_count", 0),
+        "created_at": created.isoformat() if created else None,
+    }
 
 def _parse_id(value: str) -> ObjectId:
     if not ObjectId.is_valid(value):
         raise HTTPException(status_code=400, detail="Invalid id")
     return ObjectId(value)
-
 
 # ---------------------------------------------------------------------------
 # Exams (per-user targets — powers upcoming exams, deadlines, prep progress)
@@ -105,7 +111,6 @@ async def list_exams(current_user: dict = Depends(get_current_user)):
     cursor = exams_collection.find({"user_id": current_user["_id"]}).sort("exam_date", 1)
     return [_exam_helper(doc) async for doc in cursor]
 
-
 @router.post("/exams", status_code=status.HTTP_201_CREATED)
 async def add_exam(exam: ExamCreate, current_user: dict = Depends(get_current_user)):
     doc = exam.model_dump()
@@ -113,7 +118,6 @@ async def add_exam(exam: ExamCreate, current_user: dict = Depends(get_current_us
     result = await exams_collection.insert_one(doc)
     created = await exams_collection.find_one({"_id": result.inserted_id})
     return _exam_helper(created)
-
 
 @router.patch("/exams/{exam_id}")
 async def update_exam(
@@ -134,7 +138,6 @@ async def update_exam(
         raise HTTPException(status_code=404, detail="Exam not found")
     return _exam_helper(doc)
 
-
 @router.delete("/exams/{exam_id}")
 async def delete_exam(exam_id: str, current_user: dict = Depends(get_current_user)):
     result = await exams_collection.delete_one(
@@ -144,7 +147,6 @@ async def delete_exam(exam_id: str, current_user: dict = Depends(get_current_use
         raise HTTPException(status_code=404, detail="Exam not found")
     return {"message": "Exam removed", "id": exam_id}
 
-
 # ---------------------------------------------------------------------------
 # Saved jobs
 # ---------------------------------------------------------------------------
@@ -153,7 +155,6 @@ async def delete_exam(exam_id: str, current_user: dict = Depends(get_current_use
 async def list_saved_jobs(current_user: dict = Depends(get_current_user)):
     cursor = saved_jobs_collection.find({"user_id": current_user["_id"]}).sort("saved_at", -1)
     return [_saved_job_helper(doc) async for doc in cursor]
-
 
 @router.post("/saved-jobs", status_code=status.HTTP_201_CREATED)
 async def save_job(job: SavedJobCreate, current_user: dict = Depends(get_current_user)):
@@ -169,7 +170,6 @@ async def save_job(job: SavedJobCreate, current_user: dict = Depends(get_current
     created = await saved_jobs_collection.find_one({"_id": result.inserted_id})
     return _saved_job_helper(created)
 
-
 @router.delete("/saved-jobs/{saved_id}")
 async def remove_saved_job(saved_id: str, current_user: dict = Depends(get_current_user)):
     result = await saved_jobs_collection.delete_one(
@@ -179,6 +179,31 @@ async def remove_saved_job(saved_id: str, current_user: dict = Depends(get_curre
         raise HTTPException(status_code=404, detail="Saved job not found")
     return {"message": "Removed from saved jobs", "id": saved_id}
 
+# ---------------------------------------------------------------------------
+# ATS score history
+# ---------------------------------------------------------------------------
+
+@router.get("/ats-history")
+async def ats_history(current_user: dict = Depends(get_current_user)):
+    """Recent ATS scores for this user, newest first, plus quick stats."""
+    cursor = (
+        ats_scores_collection.find({"user_id": current_user["_id"]})
+        .sort("created_at", -1)
+        .limit(10)
+    )
+    items = [_ats_helper(doc) async for doc in cursor]
+    latest = items[0]["score"] if items else None
+    best = max((i["score"] for i in items), default=None)
+    return {"history": items, "latest": latest, "best": best, "count": len(items)}
+
+@router.delete("/ats-history/{score_id}")
+async def delete_ats_score(score_id: str, current_user: dict = Depends(get_current_user)):
+    result = await ats_scores_collection.delete_one(
+        {"_id": _parse_id(score_id), "user_id": current_user["_id"]}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Score not found")
+    return {"message": "Score removed", "id": score_id}
 
 # ---------------------------------------------------------------------------
 # Aggregated summary
@@ -226,12 +251,24 @@ async def dashboard_summary(current_user: dict = Depends(get_current_user)):
         else 0
     )
 
+    # Quick ATS glance for the summary cards.
+    ats_docs = [
+        _ats_helper(doc)
+        async for doc in ats_scores_collection.find(
+            {"user_id": current_user["_id"]}
+        ).sort("created_at", -1).limit(10)
+    ]
+    latest_ats = ats_docs[0]["score"] if ats_docs else None
+    best_ats = max((d["score"] for d in ats_docs), default=None)
+
     return {
         "stats": {
             "total_exams": len(exams),
             "upcoming_exams": len(upcoming_exams),
             "saved_jobs": len(saved_jobs),
             "avg_progress": avg_progress,
+            "latest_ats": latest_ats,
+            "best_ats": best_ats,
         },
         "upcoming_exams": upcoming_exams,
         "deadlines": deadlines,
