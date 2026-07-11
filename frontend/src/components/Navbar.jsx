@@ -20,7 +20,7 @@ function Navbar() {
         <Link to="/" className="text-2xl font-extrabold tracking-tight drop-shadow neon-text">JobPortal</Link>
         <div className="flex gap-4 items-center">
           <Link to="/jobs" className="hover:text-white/90 transition">Jobs</Link>
-          <Link to="/ai-match" className="hover:text-white/90 transition">AI Match</Link>
+          <Link to="/ai-match" className="hover:text-white/90 transition">Direct Matcher</Link>
           <Link to="/resume-builder" className="hover:text-white/90 transition">Resume Builder</Link>
           <Link to="/ats" className="hover:text-white/90 transition">ATS Score</Link>
           <Link to="/skill-gap" className="hover:text-white/90 transition">Skill Gap</Link>
