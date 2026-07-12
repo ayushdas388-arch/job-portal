@@ -297,28 +297,28 @@ function Quiz() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#0f172a] text-white p-8 rounded-2xl border border-slate-700/20 shadow-xl relative overflow-hidden">
+      <div className="wander-bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm relative overflow-hidden">
         {/* Decorative background watermark */}
-        <div className="absolute right-0 top-0 opacity-10 pointer-events-none select-none translate-x-12 -translate-y-12">
-          <svg className="w-64 h-64 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <div className="absolute right-0 top-0 opacity-40 pointer-events-none select-none translate-x-12 -translate-y-12">
+          <svg className="w-64 h-64 text-slate-100" fill="currentColor" viewBox="0 0 24 24">
             <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2zm0 8H7v-2h10v2z"/>
           </svg>
         </div>
 
         <div className="mb-6 relative z-10">
-          <h2 className="text-2xl font-black text-white mb-2 tracking-tight">Practice Quiz Arena</h2>
-          <p className="text-slate-300 text-sm font-semibold max-w-xl">Test your knowledge with 30+ randomized questions across different domains. Select your topic and difficulty to begin.</p>
+          <h2 className="text-2xl font-black text-[#0f172a] mb-2 tracking-tight">Practice Quiz Arena</h2>
+          <p className="text-slate-500 text-sm font-semibold max-w-xl">Test your knowledge with 30+ randomized questions across different domains. Select your topic and difficulty to begin.</p>
         </div>
         <div className="flex flex-col md:flex-row gap-3 relative z-10">
           <input
-            className={`${inputClass} flex-1 border-slate-700/50 focus:border-slate-500 bg-slate-800/80 text-white placeholder-slate-400`}
+            className={`${inputClass} flex-1 border-slate-200/80 focus:border-slate-400 bg-white placeholder-slate-400`}
             placeholder="Topic: Aptitude / Reasoning / Python / SQL / DBMS..."
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && generate()}
           />
           <select 
-            className={`${inputClass} w-full md:w-48 border-slate-700/50 focus:border-slate-500 bg-slate-800/80 text-white`}
+            className={`${inputClass} w-full md:w-48 border-slate-200/80 focus:border-slate-400 bg-white`}
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
           >
@@ -329,12 +329,12 @@ function Quiz() {
           <button 
             onClick={generate} 
             disabled={loading} 
-            className="wander-bg-white hover:bg-slate-100 text-[#0f172a] font-extrabold py-3 px-6 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase text-xs tracking-wider hover:scale-[1.03] duration-150 border-0"
+            className="bg-[#0f172a] hover:bg-[#1e293b] text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase text-xs tracking-wider hover:scale-[1.03] duration-150 border-0"
           >
             {loading ? 'Generating 30 Qs...' : 'Start Quiz'}
           </button>
         </div>
-        {err && <p className="text-sm font-bold text-red-400 mt-3 bg-red-950/20 border border-red-900/30 p-2.5 rounded-xl">{err}</p>}
+        {err && <p className="text-sm font-bold text-red-600 mt-3 bg-red-50 border border-red-200/60 p-2.5 rounded-xl">{err}</p>}
       </div>
 
       {quiz && (
