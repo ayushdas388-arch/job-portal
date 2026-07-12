@@ -213,8 +213,11 @@ function Home() {
 
           {/* Right Column (Stacked Cards) */}
           <div className="space-y-4">
-            {/* Box 1 */}
-            <div className="flex gap-4 p-5 wander-bg-white border border-slate-200/80 rounded-2xl wander-badge-shadow hover:shadow-md transition-shadow">
+            {/* Box 1: AI Matcher */}
+            <Link 
+              to="/ai-match" 
+              className="flex gap-4 p-5 wander-bg-white border border-slate-200/80 rounded-2xl wander-badge-shadow hover:shadow-md transition-all hover:-translate-y-0.5 duration-200 cursor-pointer block"
+            >
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
                 <FaSearch />
               </div>
@@ -224,10 +227,13 @@ function Home() {
                   Our advanced AI matching algorithm inspects your resume and constructs custom search intents targeting multiple external job portals instantly.
                 </p>
               </div>
-            </div>
+            </Link>
 
-            {/* Box 2 */}
-            <div className="flex gap-4 p-5 wander-bg-white border border-slate-200/80 rounded-2xl wander-badge-shadow hover:shadow-md transition-shadow">
+            {/* Box 2: Application Tracker */}
+            <Link 
+              to="/applications" 
+              className="flex gap-4 p-5 wander-bg-white border border-slate-200/80 rounded-2xl wander-badge-shadow hover:shadow-md transition-all hover:-translate-y-0.5 duration-200 cursor-pointer block"
+            >
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
                 <FaBriefcase />
               </div>
@@ -237,10 +243,13 @@ function Home() {
                   Save roles directly into your dashboard to monitor application status, deadlines, exam alerts, and interview preparations in one unified place.
                 </p>
               </div>
-            </div>
+            </Link>
 
-            {/* Box 3 */}
-            <div className="flex gap-4 p-5 wander-bg-white border border-slate-200/80 rounded-2xl wander-badge-shadow hover:shadow-md transition-shadow">
+            {/* Box 3: Preparation Hub */}
+            <Link 
+              to="/prep" 
+              className="flex gap-4 p-5 wander-bg-white border border-slate-200/80 rounded-2xl wander-badge-shadow hover:shadow-md transition-all hover:-translate-y-0.5 duration-200 cursor-pointer block"
+            >
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
                 <FaHeadset />
               </div>
@@ -250,7 +259,7 @@ function Home() {
                   Access mock AI interview hubs, skill-gap analysis sheets, and structured roadmap guides anytime to keep your job search progressing smoothly.
                 </p>
               </div>
-            </div>
+            </Link>
           </div>
         </section>
 
