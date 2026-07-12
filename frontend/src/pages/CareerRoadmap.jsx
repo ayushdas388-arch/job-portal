@@ -39,7 +39,7 @@ function CareerRoadmap() {
       <div className="max-w-3xl mx-auto w-full space-y-12 relative z-10">
         {/* Page Header */}
         <div className="text-center space-y-3">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight" style={{ color: '#0f172a' }}>Career Roadmap Generator</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight" style={{ color: '#0f172a' }}>Career Roadmap</h1>
           <p className="text-xs md:text-sm font-bold max-w-lg mx-auto" style={{ color: '#475569' }}>
             Not sure where to start? Enter your dream role and get a step-by-step path to success.
           </p>

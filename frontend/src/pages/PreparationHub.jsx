@@ -53,7 +53,7 @@ function PreparationHub() {
         </div>
 
         {/* Dynamic Glassmorphic Panel Content */}
-        <div className="bg-white/95 backdrop-blur-md border border-slate-200/50 shadow-2xl p-6 md:p-8 rounded-3xl">
+        <div className="wander-bg-white border border-slate-200/50 shadow-2xl p-6 md:p-8 rounded-3xl">
           {tab === 'resources' && <Resources />}
           {tab === 'plan' && <StudyPlan />}
           {tab === 'quiz' && <Quiz />}
@@ -229,9 +229,9 @@ function StudyPlan() {
       </div>
 
       {plan && (
-        <div className="bg-gradient-to-br from-slate-50/50 to-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-5">
+        <div className="wander-bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-5">
           <div className="flex items-center justify-between border-b border-slate-200/60 pb-4">
-            <h3 className="text-lg font-black text-[#0f172a] tracking-tight">{plan.target} - {plan.weeks} weeks</h3>
+            <h3 className="text-lg font-black wander-text-dark tracking-tight">{plan.target} - {plan.weeks} weeks</h3>
             <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider ${['gemini', 'groq'].includes(plan.source) ? 'bg-emerald-100 text-emerald-700 border border-emerald-200/50' : 'bg-slate-100 text-slate-600 border border-slate-200/50'}`}>
               {['gemini', 'groq'].includes(plan.source) ? 'AI Powered' : 'Basic Model'}
             </span>
@@ -241,7 +241,7 @@ function StudyPlan() {
             {plan.plan.map((w) => (
               <div key={w.week} className="border-l-4 border-[#0f172a] pl-4 py-1.5 bg-slate-50/30 rounded-r-xl pr-3">
                 <p className="font-black text-slate-800 text-sm">
-                  Week {w.week}: <span className="text-[#0f172a] underline decoration-slate-300 decoration-2 underline-offset-4">{w.focus}</span>
+                  Week {w.week}: <span className="wander-text-dark underline decoration-slate-300 decoration-2 underline-offset-4">{w.focus}</span>
                 </p>
                 <ul className="list-disc list-inside text-xs text-slate-600 font-semibold mt-2 space-y-1">
                   {w.tasks.map((task, i) => (
@@ -329,7 +329,7 @@ function Quiz() {
           <button 
             onClick={generate} 
             disabled={loading} 
-            className="bg-white hover:bg-slate-100 text-[#0f172a] font-extrabold py-3 px-6 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase text-xs tracking-wider hover:scale-[1.03] duration-150"
+            className="wander-bg-white hover:bg-slate-100 text-[#0f172a] font-extrabold py-3 px-6 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase text-xs tracking-wider hover:scale-[1.03] duration-150 border-0"
           >
             {loading ? 'Generating 30 Qs...' : 'Start Quiz'}
           </button>
@@ -338,11 +338,11 @@ function Quiz() {
       </div>
 
       {quiz && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6">
+        <div className="wander-bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <h3 className="text-lg font-black text-[#0f172a]">Topic: <span className="underline decoration-slate-300 underline-offset-4">{quiz.topic}</span></h3>
+            <h3 className="text-lg font-black wander-text-dark">Topic: <span className="underline decoration-slate-300 underline-offset-4">{quiz.topic}</span></h3>
             {answeredCount === quiz.questions.length && (
-              <span className="text-sm font-black text-[#0f172a] bg-slate-100 border border-slate-200 px-3 py-1 rounded-xl">
+              <span className="text-sm font-black wander-text-dark bg-slate-100 border border-slate-200 px-3 py-1 rounded-xl">
                 Score: {score}/{quiz.questions.length}
               </span>
             )}
@@ -355,12 +355,12 @@ function Quiz() {
               const answered = chosen !== undefined
               return (
                 <div key={qi} className={`pt-6 first:pt-0 ${answered ? 'opacity-100' : ''}`}>
-                  <p className="font-black text-slate-800 mb-3 text-sm leading-relaxed">
+                  <p className="font-black wander-text-dark mb-3 text-sm leading-relaxed">
                     {qi + 1}. {q.question}
                   </p>
                   <div className="space-y-2">
                     {q.options.map((opt, oi) => {
-                      let cls = 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 text-slate-700'
+                      let cls = 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 wander-text-dark'
                       if (answered) {
                         if (oi === q.answer_index) cls = 'border-emerald-400 bg-emerald-50 text-emerald-800 font-extrabold shadow-sm'
                         else if (oi === chosen) cls = 'border-rose-400 bg-rose-50 text-rose-800 font-extrabold'
@@ -386,7 +386,7 @@ function Quiz() {
                   </div>
                   {answered && q.explanation && (
                     <div className="text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-200/50 rounded-xl p-3.5 mt-3.5 leading-relaxed">
-                      <span className="text-slate-800 font-black">Explanation:</span> {q.explanation}
+                      <span className="wander-text-dark font-black">Explanation:</span> {q.explanation}
                     </div>
                   )}
                 </div>

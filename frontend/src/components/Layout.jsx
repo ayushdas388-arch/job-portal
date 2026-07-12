@@ -40,7 +40,7 @@ function Layout({ children }) {
   // Sidebar ke navigation links - fixed paths to match App.jsx
   const navItems = [
     { name: 'Home', path: '/' },
-    { name: 'Dashboard', path: '/dashboard', auth: true },
+    { name: 'Dashboard', path: '/dashboard' },
     { name: 'Jobs', path: '/jobs' },
     { name: 'Direct Matcher', path: '/ai-match' },
     { name: 'Resume Builder', path: '/resume-builder' },
@@ -48,7 +48,7 @@ function Layout({ children }) {
     { name: 'Tracker', path: '/applications', auth: true },
     { name: 'ATS Score', path: '/ats' },
     { name: 'Preparation', path: '/prep' },
-    { name: 'Admit Cards/Results', path: '/updates' },
+    { name: 'Govt Exam Updates', path: '/updates' },
     { name: 'Mock Interview', path: '/ai-interview' },
     { name: 'Career Roadmap', path: '/roadmap' },
     { name: 'Eligibility', path: '/eligibility' },
@@ -95,7 +95,7 @@ function Layout({ children }) {
         {/* Brand Logo / Title */}
         <div className="p-6 border-b border-slate-200 flex items-center justify-between relative z-10">
           <Link to="/" onClick={() => setIsSidebarOpen(false)} className="text-2xl font-black tracking-widest text-[#0f172a] font-mono">
-            FUTURE<span className="text-blue-600 font-sans">.ai</span>
+            CAREERBUILDER
           </Link>
           <button
             onClick={() => setIsSidebarOpen(false)}

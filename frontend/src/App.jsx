@@ -19,6 +19,7 @@ import GovtUpdates from './pages/GovtUpdates'
 import AIInterview from './pages/AIInterview'
 import CareerRoadmap from './pages/CareerRoadmap'
 import ATSScore from './pages/ATSScore'
+import TermsConditions from './pages/TermsConditions'
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
           <Route path="/roadmap" element={<CareerRoadmap />} />
           <Route path="/eligibility" element={<EligibilityChecker />} />
           <Route path="/ats" element={<ATSScore />} />
+          <Route path="/terms" element={<TermsConditions />} />
           <Route
             path="/admin"
             element={

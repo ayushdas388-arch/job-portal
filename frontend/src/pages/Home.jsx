@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   FaInstagram,
@@ -15,6 +16,43 @@ import {
 } from 'react-icons/fa'
 
 function Home() {
+  const [activeSlide, setActiveSlide] = useState(0)
+
+  const heroSlides = [
+    {
+      title: "Software Engineering",
+      url: "/images/software_team.jpg",
+    },
+    {
+      title: "Hardware Engineering",
+      url: "/images/hardware_engineer.jpg",
+    },
+    {
+      title: "Indian Railways",
+      url: "/images/indian_railways.jpg",
+    },
+    {
+      title: "Defense Services",
+      url: "/images/indian_army.jpg",
+    },
+    {
+      title: "Indian Police Service (IPS)",
+      url: "/images/ips_police.jpg",
+    },
+    {
+      title: "Career Planning",
+      url: "/images/career_prep.jpg",
+      position: "right 20%",
+    }
+  ]
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide(prev => (prev + 1) % heroSlides.length)
+    }, 4000)
+    return () => clearInterval(timer)
+  }, [])
+
   return (
     <div className="wander-light-theme min-h-screen p-4 md:p-8 flex flex-col font-sans select-none overflow-x-hidden">
       <div className="max-w-7xl mx-auto w-full space-y-12">
@@ -59,26 +97,55 @@ function Home() {
 
         {/* 2. Hero Section */}
         <section className="relative rounded-3xl overflow-hidden shadow-lg h-[400px] md:h-[500px]">
-          {/* Background Image */}
-          <img
-            src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1600&auto=format&fit=crop&q=80"
-            alt="Office Workspace"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          {/* Full-width Background Slide Transition (goes left, next comes from right) */}
+          <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
+            {heroSlides.map((slide, idx) => {
+              const isActive = idx === activeSlide
+              const isPrev = idx === (activeSlide - 1 + heroSlides.length) % heroSlides.length
+
+              let positionClass = 'translate-x-full z-0'
+              let transitionClass = ''
+
+              if (isActive) {
+                positionClass = 'translate-x-0 z-10'
+                transitionClass = 'transition-transform duration-[1000ms] ease-in-out'
+              } else if (isPrev) {
+                positionClass = '-translate-x-full z-10'
+                transitionClass = 'transition-transform duration-[1000ms] ease-in-out'
+              }
+
+              return (
+                <div
+                  key={idx}
+                  className={`absolute inset-0 w-full h-full transform ${positionClass} ${transitionClass}`}
+                  style={{ willChange: 'transform' }}
+                >
+                  <img
+                    src={slide.url}
+                    alt={slide.title}
+                    className="w-full h-full object-cover"
+                    style={{ objectPosition: slide.position || 'center' }}
+                  />
+                  <div className="absolute inset-0 bg-[#0f172a]/20" />
+                </div>
+              )
+            })}
+          </div>
+
           {/* Dark Overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/80 via-[#0f172a]/30 to-[#0f172a]/10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a]/95 via-[#0f172a]/55 to-transparent z-15 pointer-events-none" />
 
           {/* Hero Content */}
-          <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16 text-white space-y-4 max-w-3xl">
+          <div className="absolute inset-y-0 left-0 flex flex-col justify-center p-8 md:p-16 text-white space-y-4 max-w-xl md:max-w-2xl z-20 animate-in fade-in slide-in-from-left duration-700">
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-widest text-white leading-none font-mono drop-shadow-md">
-              FUTURE.
+              CAREERBUILDER
             </h1>
             <p className="text-sm md:text-base text-slate-200 max-w-xl font-medium leading-relaxed drop-shadow-sm">
               Discover breathtaking career opportunities across top platforms with curated jobs, AI insights, and hassle-free matching all in one platform.
             </p>
             <div className="flex gap-4 pt-2">
               <Link
-                to="/ai-match"
+                to="/roadmap"
                 className="bg-white hover:bg-blue-600 hover:text-white text-slate-900 text-xs font-bold px-6 py-3 rounded-full transition-all shadow-md transform hover:-translate-y-0.5"
               >
                 Plan Your Career
@@ -99,7 +166,7 @@ function Home() {
           <div className="space-y-6 flex flex-col justify-between">
             <div className="space-y-4">
               <h2 className="text-2xl md:text-3xl font-extrabold wander-text-dark tracking-tight leading-tight">
-                Why Thousands of Job Seekers Choose FUTURE.ai for Their Career Adventures
+                Why Thousands of Job Seekers Choose CAREERBUILDER for Their Career Adventures
               </h2>
               <p className="text-sm text-slate-500 leading-relaxed">
                 From pristine platform mapping to smart resume building, we make exploring the careers marketplace easier, safer, and more exciting with expert-crafted AI matches and round-the-clock application support.

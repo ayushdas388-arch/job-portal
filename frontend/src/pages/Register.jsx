@@ -16,6 +16,7 @@ function Register() {
   const [captchaEnabled, setCaptchaEnabled] = useState(false)
   const [siteKey, setSiteKey] = useState('')
   const [captchaToken, setCaptchaToken] = useState('')
+  const [agreeTerms, setAgreeTerms] = useState(false)
   const captchaRef = useRef(null)
   const navigate = useNavigate()
 
@@ -55,6 +56,11 @@ function Register() {
 
     if (captchaEnabled && !captchaToken) {
       setError('Please complete the captcha.')
+      return
+    }
+
+    if (!agreeTerms) {
+      setError('You must agree to the Terms & Conditions to register.')
       return
     }
     setLoading(true)
@@ -97,7 +103,7 @@ function Register() {
       <div className="relative z-10 wander-bg-white border border-slate-200/80 p-8 rounded-3xl shadow-2xl w-full max-w-md space-y-6">
         <div className="text-center space-y-1">
           <div className="text-xl font-black tracking-widest wander-text-dark font-mono mb-2">
-            FUTURE<span className="text-blue-600 font-sans">.ai</span>
+            CAREERBUILDER
           </div>
           <h2 className="text-2xl font-black wander-text-dark tracking-tight">Create Account</h2>
           <p className="text-xs text-slate-500 font-medium">Get started with your career dashboard</p>
@@ -202,6 +208,23 @@ function Register() {
             />
           </div>
         )}
+
+        {/* Terms & Conditions Checkbox */}
+        <div className="flex items-center gap-2.5 select-none py-1">
+          <input
+            id="agreeTerms"
+            type="checkbox"
+            checked={agreeTerms}
+            onChange={(e) => setAgreeTerms(e.target.checked)}
+            className="w-4.5 h-4.5 rounded border-slate-200 accent-[#0f172a] focus:ring-0 cursor-pointer"
+          />
+          <label htmlFor="agreeTerms" className="text-xs text-slate-600 font-semibold cursor-pointer">
+            I agree to the{' '}
+            <Link to="/terms" target="_blank" className="text-blue-600 hover:underline font-bold">
+              Terms & Conditions
+            </Link>
+          </label>
+        </div>
 
         <button
           id="registerBtn"

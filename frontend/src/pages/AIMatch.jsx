@@ -27,7 +27,7 @@ function AIMatch() {
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState('skills')
   const [searched, setSearched] = useState(false)
-  
+
   // Search autocomplete state
   const [searchQuery, setSearchQuery] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
@@ -79,18 +79,18 @@ function AIMatch() {
       const response = mode === 'skills'
         ? await API.post('/ai/match-skills', selectedSkills)
         : await API.post(
-            '/ai/match-resume',
-            (() => {
-              const formData = new FormData()
-              formData.append('file', file)
-              return formData
-            })(),
-            {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-            }
-          )
+          '/ai/match-resume',
+          (() => {
+            const formData = new FormData()
+            formData.append('file', file)
+            return formData
+          })(),
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        )
 
       setResults(response.data?.matched_jobs || [])
       setExternalSources(response.data?.external_sources || [])
@@ -115,9 +115,9 @@ function AIMatch() {
   return (
     <div className="wander-light-theme min-h-screen p-4 md:p-8 md:pl-24 flex flex-col font-sans select-none overflow-x-hidden relative">
       {/* UHD Background Wallpaper */}
-      <img 
-        src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=2560&auto=format&fit=crop&q=90" 
-        alt="Direct Platform Matcher background" 
+      <img
+        src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=2560&auto=format&fit=crop&q=90"
+        alt="Direct Platform Matcher background"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
       />
       {/* Soft Pure White Overlay */}
@@ -126,7 +126,7 @@ function AIMatch() {
       <div className="max-w-4xl mx-auto w-full space-y-12 relative z-10">
         {/* Page Header */}
         <div className="text-center space-y-3">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight" style={{ color: '#0f172a' }}>Direct Platform Matcher</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight" style={{ color: '#0f172a' }}>SKILL2JOB</h1>
           <p className="text-xs md:text-sm font-bold max-w-lg mx-auto" style={{ color: '#475569' }}>
             Turn your skills or resume into live job searches across external platforms instantly.
           </p>
@@ -136,21 +136,19 @@ function AIMatch() {
         <div className="max-w-md mx-auto flex gap-4 p-1.5 wander-bg-gray border border-slate-200/80 rounded-full">
           <button
             onClick={() => switchMode('skills')}
-            className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-              mode === 'skills'
+            className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${mode === 'skills'
                 ? 'wander-bg-white wander-text-dark shadow-sm border border-slate-200/60'
                 : 'wander-text-muted hover:text-slate-800'
-            }`}
+              }`}
           >
             Match from Skills
           </button>
           <button
             onClick={() => switchMode('resume')}
-            className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-              mode === 'resume'
+            className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${mode === 'resume'
                 ? 'wander-bg-white wander-text-dark shadow-sm border border-slate-200/60'
                 : 'wander-text-muted hover:text-slate-800'
-            }`}
+              }`}
           >
             Match from Resume
           </button>
@@ -161,7 +159,7 @@ function AIMatch() {
           {mode === 'skills' ? (
             <div className="space-y-4" ref={dropdownRef}>
               <h2 className="text-xl font-extrabold wander-text-dark tracking-tight">Select Your Skills</h2>
-              
+
               {/* Selected skill chips with remove handler */}
               {selectedSkills.length > 0 && (
                 <div className="flex flex-wrap gap-2 p-3.5 bg-slate-50 border border-slate-200/60 rounded-2xl">
@@ -208,7 +206,7 @@ function AIMatch() {
                   }}
                   className="w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-semibold"
                 />
-                
+
                 {showDropdown && searchQuery.trim() !== '' && (
                   <div className="absolute left-0 right-0 mt-1.5 wander-bg-white border border-slate-200/80 rounded-2xl shadow-xl max-h-60 overflow-y-auto z-20 divide-y divide-slate-100">
                     {filteredSkills.length > 0 ? (
@@ -246,11 +244,10 @@ function AIMatch() {
                       <button
                         key={skill}
                         onClick={() => toggleSkill(skill)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer ${
-                          isSelected
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer ${isSelected
                             ? 'bg-blue-50 text-blue-600 border-blue-200/60 shadow-sm'
                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200/70 border-slate-200 hover:border-blue-400'
-                        }`}
+                          }`}
                       >
                         {skill}
                       </button>
@@ -295,7 +292,7 @@ function AIMatch() {
             disabled={loading}
             className="w-full bg-[#0f172a] hover:bg-blue-600 disabled:bg-slate-300 text-white text-xs font-bold py-3.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
           >
-            {loading ? 'Searching platforms...' : 'Find External Jobs'}
+            {loading ? 'Searching platforms...' : 'Find'}
           </button>
         </div>
 
@@ -361,7 +358,7 @@ function AIMatch() {
                         <p className="text-slate-500 text-xs leading-relaxed font-semibold line-clamp-3">{job.reason}</p>
                         <p className="text-[10px] text-slate-400 font-semibold bg-slate-50 border border-slate-200/50 p-2.5 rounded-xl">Search query: <code className="font-mono text-blue-600 font-bold">{job.query}</code></p>
                       </div>
-                      
+
                       <a
                         href={job.url}
                         target="_blank"

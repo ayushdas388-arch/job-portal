@@ -155,7 +155,7 @@ function Dashboard() {
 
         <div className="relative z-10 wander-bg-white border border-slate-200/80 p-8 rounded-3xl shadow-2xl w-full max-w-md text-center space-y-6">
           <div className="text-xl font-black tracking-widest wander-text-dark font-mono mb-2">
-            FUTURE<span className="text-blue-600 font-sans">.ai</span>
+            CAREERBUILDER
           </div>
           <h1 className="text-2xl font-black wander-text-dark tracking-tight">📊 Dashboard</h1>
           <p className="text-xs text-slate-500 font-medium mb-6">Login to view the dashboard.</p>

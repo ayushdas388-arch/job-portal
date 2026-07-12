@@ -128,6 +128,22 @@ async def get_current_user(
     return user
 
 
+async def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+) -> dict | None:
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        return None
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id or not ObjectId.is_valid(user_id):
+            return None
+    except JWTError:
+        return None
+
+    return await users_collection.find_one({"_id": ObjectId(user_id)})
+
+
 def require_roles(*allowed_roles: str):
     allowed = {role.casefold() for role in allowed_roles}
 

@@ -662,3 +662,175 @@ Return ONLY a JSON object with this exact shape (do not wrap in markdown or add 
 async def get_roadmap(data: RoadmapRequest):
     return groq_roadmap(data.target_role)
 
+
+class ExamUpdatesRequest(BaseModel):
+    query: str = Field(default="", max_length=150)
+    category: str = Field(default="admit_cards", max_length=50)
+
+
+def search_ddg_lite(query: str) -> list[dict]:
+    import httpx
+    import re
+    from html import unescape
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    url = "https://lite.duckduckgo.com/lite/"
+    data = {"q": query}
+    try:
+        response = httpx.post(url, data=data, headers=headers, timeout=12.0)
+        if response.status_code != 200:
+            return []
+        
+        html = response.text
+        results = []
+        
+        link_matches = list(re.finditer(r"<a[^>]+href=\"([^\"]+)\"[^>]+class='result-link'[^>]*>(.*?)</a>", html, re.DOTALL))
+        
+        for idx, match in enumerate(link_matches):
+            link = match.group(1)
+            title = re.sub(r'<[^>]+>', '', match.group(2))
+            title = unescape(title.strip())
+            
+            start_pos = match.end()
+            end_pos = link_matches[idx+1].start() if idx + 1 < len(link_matches) else len(html)
+            
+            sub_html = html[start_pos:end_pos]
+            snippet_match = re.search(r"<td class='result-snippet'[^>]*>(.*?)</td>", sub_html, re.DOTALL)
+            
+            snippet = ""
+            if snippet_match:
+                snippet = re.sub(r'<[^>]+>', '', snippet_match.group(1))
+                snippet = unescape(snippet.strip())
+                snippet = " ".join(snippet.split())
+            
+            results.append({
+                "title": title,
+                "link": link,
+                "snippet": snippet
+            })
+            
+        return results
+    except Exception as e:
+        print(f"Error scraping DDG Lite: {e}")
+        return []
+
+
+def fallback_exam_updates(query: str, category: str) -> list[dict]:
+    data = {
+        "admit_cards": [
+            { "title": "SSC CGL Tier 1 Admit Card 2026", "date": "July 5, 2026", "link": "https://ssc.gov.in/" },
+            { "title": "UPSC Civil Services Prelims e-Admit Card", "date": "June 28, 2026", "link": "https://upsc.gov.in/" },
+            { "title": "IBPS PO Prelims Call Letter", "date": "June 15, 2026", "link": "https://www.ibps.in/" },
+            { "title": "RRB NTPC Admit Card / Exam City Info", "date": "Active", "link": "https://rrbapply.gov.in/" }
+        ],
+        "results": [
+            { "title": "SSC CHSL 2025 Final Result", "date": "July 1, 2026", "link": "https://ssc.gov.in/" },
+            { "title": "RRB NTPC CBT-2 Scorecard", "date": "June 20, 2026", "link": "https://rrbapply.gov.in/" },
+            { "title": "UPSC CSE 2025 Mains Result", "date": "Released", "link": "https://upsc.gov.in/" }
+        ],
+        "calendar": [
+            { "title": "UPSC Annual Calendar 2027", "date": "Upcoming", "link": "https://upsc.gov.in/" },
+            { "title": "SSC Examination Calendar 2026-27", "date": "Released", "link": "https://ssc.gov.in/" },
+            { "title": "IBPS Tentative Annual Calendar 2026", "date": "Released", "link": "https://www.ibps.in/" }
+        ],
+        "jobs": [
+            { "title": "UPSC Civil Services Examination 2026 Notification", "date": "Apply by July 31, 2026", "link": "https://upsc.gov.in/" },
+            { "title": "SSC CGL 2026 Vacancy Notification (15,000+ Posts)", "date": "Apply by August 10, 2026", "link": "https://ssc.gov.in/" },
+            { "title": "IBPS PO/MT CRP-XVI Recruitment 2026", "date": "Apply by July 25, 2026", "link": "https://www.ibps.in/" },
+            { "title": "RRB NTPC Recruitment Notification 2026", "date": "Coming Soon", "link": "https://rrbapply.gov.in/" }
+        ]
+    }
+    
+    items = data.get(category, [])
+    if query:
+        q = query.lower()
+        items = [item for item in items if q in item["title"].lower()]
+    return items
+
+
+def groq_exam_updates(query: str, category: str) -> list[dict]:
+    if not query.strip():
+        return fallback_exam_updates("", category)
+        
+    search_context = ""
+    if category == "admit_cards":
+        search_context = "admit card download link release date"
+    elif category == "results":
+        search_context = "exam result scorecard merit list merit download"
+    elif category == "calendar":
+        search_context = "exam calendar tentative date notifications schedule"
+    elif category == "jobs":
+        search_context = "recruitment notification vacancy apply online official"
+        
+    search_query = f"{query} {search_context} site:gov.in OR site:nic.in OR recruitment"
+    raw_results = search_ddg_lite(search_query)
+    
+    if not raw_results:
+        raw_results = search_ddg_lite(f"{query} {search_context}")
+        
+    if not raw_results:
+        return fallback_exam_updates(query, category)
+        
+    if not GROQ_API_KEY:
+        formatted = []
+        for r in raw_results[:5]:
+            formatted.append({
+                "title": r["title"],
+                "date": "Live Search Result",
+                "link": r["link"]
+            })
+        return formatted
+        
+    prompt = f"""
+You are a government exam recruitment expert. Review these raw search results for the query "{query}" under the category "{category}":
+
+Raw Search Results (JSON):
+{json.dumps(raw_results[:6], ensure_ascii=False)}
+
+Generate a clean list of the top 3-4 most relevant official exam notifications, admit cards, or results.
+For each item, provide:
+- A clean, professional, and clear title (no HTML tags, no excessive capitalizations).
+- A human-readable date or status (e.g., "Released on July 10, 2026", "Apply by Aug 15, 2026", "Upcoming", "Active", or a date extracted from the snippet).
+- The direct official link. Prefer official government portals (.gov.in, .nic.in, or direct exam portals) if present in the raw results.
+
+Return ONLY a JSON object with this exact shape (no markdown, no extra chat text):
+{{
+  "updates": [
+    {{
+      "title": "...",
+      "date": "...",
+      "link": "..."
+    }}
+  ]
+}}
+"""
+    try:
+        response_text = query_groq(prompt, json_mode=True)
+        if not response_text:
+            return [{ "title": r["title"], "date": "Live Update", "link": r["link"] } for r in raw_results[:4]]
+            
+        result = json.loads(strip_json_fence(response_text))
+        updates = result.get("updates", [])
+        if not isinstance(updates, list) or len(updates) == 0:
+            return [{ "title": r["title"], "date": "Live Update", "link": r["link"] } for r in raw_results[:4]]
+            
+        formatted = []
+        for item in updates:
+            formatted.append({
+                "title": str(item.get("title") or "Exam Update"),
+                "date": str(item.get("date") or "Active"),
+                "link": str(item.get("link") or "https://google.com")
+            })
+        return formatted
+    except Exception as exc:
+        print(f"Groq exam updates error: {exc}. Using raw search results...")
+        return [{ "title": r["title"], "date": "Live Search Result", "link": r["link"] } for r in raw_results[:4]]
+
+
+@router.post("/exam-updates")
+async def get_exam_updates(data: ExamUpdatesRequest):
+    return groq_exam_updates(data.query, data.category)
+
+

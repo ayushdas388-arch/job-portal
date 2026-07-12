@@ -17,18 +17,21 @@ Reuses two pure (non-AI) helpers from routes/ai.py:
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 import re
 from typing import List
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile, Depends
 from pydantic import BaseModel
 
 from config import GROQ_API_KEY
+from database import ats_scores_collection
 from routes.ai import (
     ROLE_SKILLS,
     extract_known_skills,
     extract_text_from_pdf,
 )
+from routes.auth import get_current_user_optional
 
 try:
     from groq import Groq
@@ -273,6 +276,7 @@ async def score(
     file: UploadFile = File(...),
     target_role: str = Form(""),
     job_description: str = Form(""),
+    current_user: dict | None = Depends(get_current_user_optional),
 ):
     """Upload a resume PDF (+ optional role or job description) and get an ATS score."""
     if not file.filename.lower().endswith(".pdf"):
@@ -299,4 +303,18 @@ async def score(
     result = score_resume(text, targets)
     result["ai_suggestions"] = ai_suggestions(text, target_role, job_description)
     result["source"] = "groq+rules" if result["ai_suggestions"] else "rules"
+
+    if current_user:
+        await ats_scores_collection.insert_one({
+            "user_id": current_user["_id"],
+            "file_name": file.filename,
+            "target_role": target_role or "General Baseline",
+            "had_jd": bool(job_description.strip()),
+            "score": result["score"],
+            "rating": result["rating"],
+            "matched_count": len(result["matched_keywords"]),
+            "missing_count": len(result["missing_keywords"]),
+            "created_at": datetime.now(timezone.utc),
+        })
+
     return result
