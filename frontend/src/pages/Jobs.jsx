@@ -249,8 +249,14 @@ function Jobs() {
                 const bgWallpaper = platformWallpapers[siteNameLower] || defaultWallpaper
                 const cardStyleClass = platformCardStyles[siteNameLower] || defaultCardStyle
 
-                return (
-                  <div key={platform.id} className="border border-slate-700/20 rounded-3xl p-6 hover:shadow-2xl transition-all group flex flex-col h-[265px] relative overflow-hidden text-white">
+                 return (
+                  <a 
+                    key={platform.id} 
+                    href={platform.url || platform.home_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-slate-700/20 rounded-3xl p-6 hover:shadow-2xl transition-all group flex flex-col min-h-[300px] relative overflow-hidden text-white cursor-pointer"
+                  >
                     {/* Unique Watermark Background Wallpaper (High visibility) */}
                     <div className="absolute inset-0 opacity-[0.88] pointer-events-none select-none z-0">
                       <img 
@@ -274,23 +280,24 @@ function Jobs() {
                     <p className="relative z-10 text-xs text-slate-200 font-medium leading-relaxed flex-1 mb-6 line-clamp-3">{platform.description}</p>
                     
                     <div className="relative z-10 flex items-center gap-2 mt-auto">
-                      <a 
-                        href={platform.url || platform.home_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="flex-1 bg-white hover:bg-slate-100 text-[#0f172a] text-xs font-black py-2.5 rounded-xl text-center transition-all cursor-pointer shadow-md hover:scale-105 duration-200"
+                      <div 
+                        className="flex-1 bg-white hover:bg-slate-100 text-[#0f172a] text-xs font-black py-2.5 rounded-xl text-center transition-all shadow-md hover:scale-105 duration-200"
                       >
                         Visit Site
-                      </a>
+                      </div>
                       <button 
-                        onClick={() => handleSave(platform, tab === 'private' ? 'Private Platform' : 'Government Portal')} 
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleSave(platform, tab === 'private' ? 'Private Platform' : 'Government Portal')
+                        }}
                         disabled={isSaved} 
-                        className="bg-white/10 hover:bg-white/20 border border-white/20 disabled:bg-white/5 disabled:text-white/40 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+                        className="bg-white/10 hover:bg-white/20 border border-white/20 disabled:bg-white/5 disabled:text-white/40 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer relative z-20"
                       >
                         {isSaved ? 'Saved' : 'Save'}
                       </button>
                     </div>
-                  </div>
+                  </a>
                 )
               })}
             </div>
