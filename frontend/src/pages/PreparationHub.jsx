@@ -297,6 +297,25 @@ function Quiz() {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        .quiz-input-override {
+          background-color: #ffffff !important;
+          color: #0f172a !important;
+          border: 1px solid #cbd5e1 !important;
+        }
+        .quiz-input-override::placeholder {
+          color: #94a3b8 !important;
+        }
+        .quiz-select-override {
+          background-color: #ffffff !important;
+          color: #0f172a !important;
+          border: 1px solid #cbd5e1 !important;
+        }
+        .quiz-select-override option {
+          background-color: #ffffff !important;
+          color: #0f172a !important;
+        }
+      `}</style>
       <div className="wander-bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm relative overflow-hidden">
         {/* Decorative background watermark */}
         <div className="absolute right-0 top-0 opacity-40 pointer-events-none select-none translate-x-12 -translate-y-12">
@@ -311,14 +330,14 @@ function Quiz() {
         </div>
         <div className="flex flex-col md:flex-row gap-3 relative z-10">
           <input
-            className={`${inputClass} flex-1 border-slate-200/80 focus:border-slate-400 bg-white placeholder-slate-400`}
+            className="quiz-input-override flex-1 w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-slate-400 placeholder-slate-400 transition-all font-semibold"
             placeholder="Topic: Aptitude / Reasoning / Python / SQL / DBMS..."
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && generate()}
           />
           <select 
-            className={`${inputClass} w-full md:w-48 border-slate-200/80 focus:border-slate-400 bg-white`}
+            className="quiz-select-override w-full md:w-48 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-slate-400 transition-all font-semibold"
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
           >
