@@ -125,8 +125,14 @@ export default function ATSScore() {
                                             background: `conic-gradient(${ringColor(result.score)} ${result.score * 3.6}deg, #e2e8f0 0deg)`,
                                         }}
                                     >
-                                        <div className="grid h-18 w-18 place-items-center rounded-full bg-white shadow-sm">
-                                            <span className="text-2xl font-black animate-pulse" style={{ color: ringColor(result.score) }}>
+                                        <div 
+                                            className="grid h-18 w-18 place-items-center rounded-full shadow-sm"
+                                            style={{ backgroundColor: '#ffffff' }}
+                                        >
+                                            <span 
+                                                className="text-2xl font-black" 
+                                                style={{ color: ringColor(result.score) }}
+                                            >
                                                 {result.score}
                                             </span>
                                         </div>

@@ -194,8 +194,14 @@ function AIInterview() {
                     background: `conic-gradient(${ringColor(feedback.score)} ${feedback.score * 3.6}deg, oklch(93% 0.01 260) 0deg)`,
                   }}
                 >
-                  <div className="grid h-20 w-20 place-items-center rounded-full bg-white">
-                    <span className="text-2xl font-black" style={{ color: ringColor(feedback.score) }}>
+                  <div 
+                    className="grid h-20 w-20 place-items-center rounded-full shadow-sm"
+                    style={{ backgroundColor: '#ffffff' }}
+                  >
+                    <span 
+                      className="text-2xl font-black" 
+                      style={{ color: ringColor(feedback.score) }}
+                    >
                       {feedback.score}%
                     </span>
                   </div>
