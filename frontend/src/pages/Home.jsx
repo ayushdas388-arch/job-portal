@@ -277,7 +277,12 @@ function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {/* Card 1: LinkedIn */}
-            <div className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
+            <a 
+              href="https://www.linkedin.com/jobs/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all relative group cursor-pointer block hover:-translate-y-0.5 duration-200"
+            >
               <div className="h-48 overflow-hidden relative">
                 <img src="https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=600&auto=format&fit=crop&q=80" alt="LinkedIn Platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <span className="absolute top-3 right-3 bg-white/95 text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">Starts at Free</span>
@@ -290,10 +295,15 @@ function Home() {
                 <h3 className="font-bold text-sm wander-text-dark">LinkedIn Jobs</h3>
                 <span className="text-[10px] font-medium text-slate-400 block uppercase tracking-wider">Global Reach</span>
               </div>
-            </div>
+            </a>
 
             {/* Card 2: Indeed */}
-            <div className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
+            <a 
+              href="https://in.indeed.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all relative group cursor-pointer block hover:-translate-y-0.5 duration-200"
+            >
               <div className="h-48 overflow-hidden relative">
                 <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop&q=80" alt="Indeed Platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <span className="absolute top-3 right-3 bg-white/95 text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">Starts at Free</span>
@@ -306,10 +316,15 @@ function Home() {
                 <h3 className="font-bold text-sm wander-text-dark">Indeed Jobs</h3>
                 <span className="text-[10px] font-medium text-slate-400 block uppercase tracking-wider">Multi-national</span>
               </div>
-            </div>
+            </a>
 
             {/* Card 3: Naukri */}
-            <div className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
+            <a 
+              href="https://www.naukri.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all relative group cursor-pointer block hover:-translate-y-0.5 duration-200"
+            >
               <div className="h-48 overflow-hidden relative">
                 <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80" alt="Naukri Platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <span className="absolute top-3 right-3 bg-white/95 text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">Starts at Free</span>
@@ -322,10 +337,15 @@ function Home() {
                 <h3 className="font-bold text-sm wander-text-dark">Naukri.com</h3>
                 <span className="text-[10px] font-medium text-slate-400 block uppercase tracking-wider">India & Gulf</span>
               </div>
-            </div>
+            </a>
 
             {/* Card 4: Upwork */}
-            <div className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
+            <a 
+              href="https://www.upwork.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="wander-bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all relative group cursor-pointer block hover:-translate-y-0.5 duration-200"
+            >
               <div className="h-48 overflow-hidden relative">
                 <img src="https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&auto=format&fit=crop&q=80" alt="Upwork Platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <span className="absolute top-3 right-3 bg-white/95 text-slate-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">Commission-Based</span>
@@ -338,7 +358,7 @@ function Home() {
                 <h3 className="font-bold text-sm wander-text-dark">Upwork Freelance</h3>
                 <span className="text-[10px] font-medium text-slate-400 block uppercase tracking-wider">Remote / Worldwide</span>
               </div>
-            </div>
+            </a>
 
           </div>
 
