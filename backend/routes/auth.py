@@ -1,4 +1,5 @@
 import re
+import random
 from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
@@ -233,5 +234,99 @@ async def read_current_user(current_user: dict = Depends(get_current_user)):
         "email": current_user.get("email", ""),
         "role": current_user.get("role", "jobseeker"),
     }
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def clean_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    otp: str = Field(min_length=6, max_length=6)
+    new_password: str = Field(min_length=8, max_length=72)
+
+    @field_validator("email")
+    @classmethod
+    def clean_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+@router.post("/forgot-password")
+async def forgot_password(data: ForgotPasswordRequest):
+    user = await users_collection.find_one(
+        {"email": {"$regex": f"^{re.escape(data.email)}$", "$options": "i"}}
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No user found with this email address",
+        )
+
+    # Generate 6-digit OTP
+    otp = str(random.randint(100000, 999999))
+    expires = datetime.now(timezone.utc) + timedelta(minutes=15)
+
+    await users_collection.update_one(
+        {"_id": user["_id"]},
+        {"$set": {"reset_otp": otp, "reset_otp_expires": expires}}
+    )
+
+    # Simulate sending email by logging it in the backend terminal console logs
+    print("\n" + "=" * 50)
+    print("  SIMULATED EMAIL SENT")
+    print(f"  To: {data.email}")
+    print("  Subject: CareerPilot Password Recovery Verification Code")
+    print(f"  Message: Your recovery code is {otp}. Expires in 15 minutes.")
+    print("=" * 50 + "\n")
+
+    return {
+        "message": "Verification code has been sent to your registered email address (simulated in backend console).",
+    }
+
+
+@router.post("/reset-password")
+async def reset_password(data: ResetPasswordRequest):
+    user = await users_collection.find_one(
+        {"email": {"$regex": f"^{re.escape(data.email)}$", "$options": "i"}}
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No user found with this email address",
+        )
+
+    stored_otp = user.get("reset_otp")
+    expires = user.get("reset_otp_expires")
+
+    if not stored_otp or stored_otp != data.otp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code",
+        )
+
+    if expires:
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Verification code has expired",
+            )
+
+    # Reset password
+    await users_collection.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {"password": hash_password(data.new_password)},
+            "$unset": {"reset_otp": 1, "reset_otp_expires": 1}
+        }
+    )
+
+    return {"message": "Password has been successfully updated."}
 
 

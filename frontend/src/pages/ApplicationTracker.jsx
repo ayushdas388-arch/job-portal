@@ -97,7 +97,7 @@ function ApplicationTracker() {
         
         <div className="relative z-10 wander-bg-white border border-slate-200/80 p-8 rounded-3xl shadow-2xl w-full max-w-md text-center space-y-6">
           <div className="text-xl font-black tracking-widest wander-text-dark font-mono mb-2">
-            CAREERBUILDER
+            CAREERPILOT
           </div>
           <h1 className="text-2xl font-extrabold wander-text-dark tracking-tight">Application Tracker</h1>
           <p className="text-xs text-slate-500 font-bold max-w-sm mx-auto leading-relaxed">

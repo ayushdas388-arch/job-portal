@@ -76,7 +76,7 @@ function Login() {
       <div className="relative z-10 wander-bg-white border border-slate-200/80 p-8 rounded-3xl shadow-2xl w-full max-w-md space-y-6">
         <div className="text-center space-y-1">
           <div className="text-xl font-black tracking-widest wander-text-dark font-mono mb-2">
-            CAREERBUILDER
+            CAREERPILOT
           </div>
           <h2 className="text-2xl font-black wander-text-dark tracking-tight">Welcome Back</h2>
           <p className="text-xs text-slate-500 font-medium">Please enter your credentials to login</p>
@@ -109,6 +109,11 @@ function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+          </div>
+          <div className="flex justify-end">
+            <Link to="/forgot-password" className="text-[10px] text-blue-600 hover:underline font-bold">
+              Forgot Password?
+            </Link>
           </div>
         </div>
 

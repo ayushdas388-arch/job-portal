@@ -29,27 +29,27 @@ export default function TermsConditions() {
           <div>
             <h2 className="text-xl font-black wander-text-dark mb-3 border-b border-slate-100 pb-2">1. Agreement to Terms</h2>
             <p className="text-slate-600 text-sm font-semibold">
-              By accessing and using CareerBuilder, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all of these terms, you are prohibited from using the platform.
+              By accessing and using CareerPilot, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all of these terms, you are prohibited from using the platform.
             </p>
           </div>
 
           <div>
             <h2 className="text-xl font-black wander-text-dark mb-3 border-b border-slate-100 pb-2">2. External Job Platforms (Aggregator Disclaimer)</h2>
             <p className="text-slate-600 text-sm font-semibold">
-              CareerBuilder is an aggregator platform. We index and generate direct redirection links to third-party recruitment sites (such as LinkedIn, Indeed, Naukri, Foundit, Internshala, and Wellfound) and government exam portals (such as UPSC, SSC, RRB, and IBPS). 
+              CareerPilot is an aggregator platform. We index and generate direct redirection links to third-party recruitment sites (such as LinkedIn, Indeed, Naukri, Foundit, Internshala, and Wellfound) and government exam portals (such as UPSC, SSC, RRB, and IBPS). 
             </p>
             <p className="text-slate-600 text-sm font-semibold mt-2">
-              Please note that CareerBuilder does not host, manage, or publish independent job openings on its own database. We are not responsible for the content, privacy policies, validity, or hiring decisions of external websites. Redirections are performed at your own discretion.
+              Please note that CareerPilot does not host, manage, or publish independent job openings on its own database. We are not responsible for the content, privacy policies, validity, or hiring decisions of external websites. Redirections are performed at your own discretion.
             </p>
           </div>
 
           <div>
             <h2 className="text-xl font-black wander-text-dark mb-3 border-b border-slate-100 pb-2">3. AI Insights and Preparation Services (Groq AI)</h2>
             <p className="text-slate-600 text-sm font-semibold">
-              CareerBuilder provides advanced educational tools—including the ATS Score Checker, AI Resume Builder, Skill Gap Analyzer, Week-by-Week Career Roadmaps, Practice Quizzes, and conversational Mock Interviews—powered by Groq AI's LLM services.
+              CareerPilot provides advanced educational tools—including the ATS Score Checker, AI Resume Builder, Skill Gap Analyzer, Week-by-Week Career Roadmaps, Practice Quizzes, and conversational Mock Interviews—powered by Groq AI's LLM services.
             </p>
             <p className="text-slate-600 text-sm font-semibold mt-2">
-              All AI outputs, practice questions, interview responses, and roadmap advice are generated recommendations intended strictly for training and self-assessment purposes. CareerBuilder does not warrant that AI suggestions will guarantee successful placement, recruitment, or passing score results in actual competitive examinations.
+              All AI outputs, practice questions, interview responses, and roadmap advice are generated recommendations intended strictly for training and self-assessment purposes. CareerPilot does not warrant that AI suggestions will guarantee successful placement, recruitment, or passing score results in actual competitive examinations.
             </p>
           </div>
 
@@ -63,7 +63,7 @@ export default function TermsConditions() {
           <div>
             <h2 className="text-xl font-black wander-text-dark mb-3 border-b border-slate-100 pb-2">5. Limitation of Liability</h2>
             <p className="text-slate-600 text-sm font-semibold">
-              In no event shall CareerBuilder, its creators, or partners be liable for any direct, indirect, incidental, or consequential damages (including loss of employment opportunities or test failures) arising out of the use of, or inability to use, our service.
+              In no event shall CareerPilot, its creators, or partners be liable for any direct, indirect, incidental, or consequential damages (including loss of employment opportunities or test failures) arising out of the use of, or inability to use, our service.
             </p>
           </div>
 

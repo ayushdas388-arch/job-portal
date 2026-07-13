@@ -95,7 +95,7 @@ function Layout({ children }) {
         {/* Brand Logo / Title */}
         <div className="p-6 border-b border-slate-200 flex items-center justify-between relative z-10">
           <Link to="/" onClick={() => setIsSidebarOpen(false)} className="text-2xl font-black tracking-widest text-[#0f172a] font-mono">
-            CAREERBUILDER
+            CAREERPILOT
           </Link>
           <button
             onClick={() => setIsSidebarOpen(false)}

@@ -20,6 +20,7 @@ import AIInterview from './pages/AIInterview'
 import CareerRoadmap from './pages/CareerRoadmap'
 import ATSScore from './pages/ATSScore'
 import TermsConditions from './pages/TermsConditions'
+import ForgotPassword from './pages/ForgotPassword'
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/ai-match" element={<AIMatch />} />
           <Route path="/resume-builder" element={<ResumeBuilder />} />
           <Route path="/skill-gap" element={<SkillGap />} />

@@ -122,7 +122,7 @@ class StudyPlanRequest(BaseModel):
 
 class QuizRequest(BaseModel):
     topic: str = Field(min_length=1, max_length=120)
-    count: int = Field(default=30, ge=1, le=50)
+    count: int = Field(default=20, ge=1, le=50)
     difficulty: str = Field(default="medium", max_length=20)
     seed: str = Field(default="", max_length=100)
 

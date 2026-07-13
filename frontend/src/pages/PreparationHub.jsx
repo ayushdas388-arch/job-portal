@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
 
@@ -264,20 +265,47 @@ function Quiz() {
   const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
+  const [showTopicSwitchPrompt, setShowTopicSwitchPrompt] = useState(false)
 
-  const generate = async () => {
+  const answeredCount = Object.keys(answers).length
+  const score = quiz
+    ? quiz.questions.reduce((acc, q, i) => acc + (answers[i] === q.answer_index ? 1 : 0), 0)
+    : 0
+
+  useEffect(() => {
+    if (quiz && answeredCount === quiz.questions.length && quiz.questions.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById('quiz-completion-section')
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 150)
+    }
+  }, [answeredCount, quiz])
+
+  const generate = async (append = false) => {
     if (!topic.trim()) {
       setErr('Enter a topic (for example, "Aptitude", "Python", or "SQL").')
       return
     }
     setErr('')
     setLoading(true)
-    setQuiz(null)
-    setAnswers({})
+    if (!append) {
+      setQuiz(null)
+      setAnswers({})
+    }
+    setShowTopicSwitchPrompt(false)
     try {
       const seed = Math.random().toString(36).substring(7)
-      const { data } = await API.post('/prep/quiz', { topic, count: 30, difficulty, seed })
-      setQuiz(data)
+      const { data } = await API.post('/prep/quiz', { topic, count: 20, difficulty, seed })
+      if (append && quiz) {
+        setQuiz((prev) => ({
+          ...prev,
+          questions: [...prev.questions, ...data.questions],
+        }))
+      } else {
+        setQuiz(data)
+      }
     } catch (error) {
       setErr(error?.response?.data?.detail?.[0]?.msg || 'Could not generate the quiz.')
     } finally {
@@ -290,10 +318,29 @@ function Quiz() {
     setAnswers((a) => ({ ...a, [qi]: oi }))
   }
 
-  const score = quiz
-    ? quiz.questions.reduce((acc, q, i) => acc + (answers[i] === q.answer_index ? 1 : 0), 0)
-    : 0
-  const answeredCount = Object.keys(answers).length
+  const token = localStorage.getItem('token')
+
+  if (!token) {
+    return (
+      <div className="py-12 px-6 text-center select-none">
+        <div className="w-20 h-20 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-slate-200/80 shadow-inner">
+          <svg className="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-black text-[#0f172a] mb-2 tracking-tight">Practice Quiz Arena</h2>
+        <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6 leading-relaxed font-semibold">
+          You must be logged in to access practice quizzes, evaluate answers, and track your performance metrics.
+        </p>
+        <Link 
+          to="/login" 
+          className="inline-block bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-extrabold px-8 py-3.5 rounded-2xl transition-all shadow-md uppercase tracking-wider cursor-pointer text-center"
+        >
+          Login to Account
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -326,7 +373,7 @@ function Quiz() {
 
         <div className="mb-6 relative z-10">
           <h2 className="text-2xl font-black text-[#0f172a] mb-2 tracking-tight">Practice Quiz Arena</h2>
-          <p className="text-slate-500 text-sm font-semibold max-w-xl">Test your knowledge with 30+ randomized questions across different domains. Select your topic and difficulty to begin.</p>
+          <p className="text-slate-500 text-sm font-semibold max-w-xl">Test your knowledge with 20 randomized questions across different domains. Select your topic and difficulty to begin.</p>
         </div>
         <div className="flex flex-col md:flex-row gap-3 relative z-10">
           <input
@@ -350,7 +397,7 @@ function Quiz() {
             disabled={loading} 
             className="bg-[#0f172a] hover:bg-[#1e293b] text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md shrink-0 cursor-pointer uppercase text-xs tracking-wider hover:scale-[1.03] duration-150 border-0"
           >
-            {loading ? 'Generating 30 Qs...' : 'Start Quiz'}
+            {loading ? 'Generating 20 Qs...' : 'Start Quiz'}
           </button>
         </div>
         {err && <p className="text-sm font-bold text-red-600 mt-3 bg-red-50 border border-red-200/60 p-2.5 rounded-xl">{err}</p>}
@@ -414,16 +461,65 @@ function Quiz() {
           </div>
           
           {answeredCount === quiz.questions.length && quiz.questions.length > 0 && (
-            <div className="pt-6 border-t border-gray-200 flex flex-col items-center">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Quiz Completed!</h3>
-              <p className="text-gray-600 mb-6">You scored {score} out of {quiz.questions.length}.</p>
-              <button 
-                onClick={generate} 
-                disabled={loading}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-colors"
-              >
-                {loading ? 'Generating new set...' : 'Retake with New Questions'}
-              </button>
+            <div id="quiz-completion-section" className="pt-8 border-t border-slate-200 flex flex-col items-center text-center space-y-6">
+              <div>
+                <h3 className="text-2xl font-black text-[#0f172a] mb-1">Performance Summary</h3>
+                <p className="text-slate-500 text-sm font-semibold">
+                  You have successfully completed the quiz. You scored <span className="text-[#0f172a] font-extrabold">{score}</span> out of <span className="text-[#0f172a] font-extrabold">{quiz.questions.length}</span> ({( (score / quiz.questions.length) * 100 ).toFixed(0)}%).
+                </p>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200/60 rounded-3xl p-6 max-w-lg w-full space-y-4">
+                <p className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                  Would you like to practice more questions on this topic?
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => generate(true)}
+                    disabled={loading}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-extrabold py-3 px-6 rounded-xl transition-all shadow-sm cursor-pointer border-0"
+                  >
+                    {loading ? 'Loading More Questions...' : 'Yes, Generate Different Questions'}
+                  </button>
+                  <button
+                    onClick={() => setShowTopicSwitchPrompt(true)}
+                    className="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-extrabold py-3 px-6 rounded-xl transition-all cursor-pointer border-0"
+                  >
+                    No, I am satisfied
+                  </button>
+                </div>
+              </div>
+
+              {showTopicSwitchPrompt && (
+                <div className="bg-blue-50 border border-blue-200 rounded-3xl p-6 max-w-lg w-full space-y-3 animate-in fade-in slide-in-from-bottom duration-300">
+                  <p className="text-xs font-black text-blue-800 uppercase tracking-wider">
+                    Excellent work! Would you like to explore or select a different topic for practice?
+                  </p>
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      onClick={() => {
+                        setQuiz(null)
+                        setAnswers({})
+                        setTopic('')
+                        setShowTopicSwitchPrompt(false)
+                        setTimeout(() => {
+                          const inputEl = document.querySelector('.quiz-input-override')
+                          if (inputEl) inputEl.focus()
+                        }, 50)
+                      }}
+                      className="bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-extrabold py-2.5 px-6 rounded-xl transition-all cursor-pointer border-0"
+                    >
+                      Yes, Choose New Topic
+                    </button>
+                    <button
+                      onClick={() => setShowTopicSwitchPrompt(false)}
+                      className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-extrabold py-2.5 px-6 rounded-xl transition-all cursor-pointer"
+                    >
+                      Maybe Later
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

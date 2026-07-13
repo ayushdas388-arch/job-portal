@@ -72,7 +72,7 @@ function Home() {
               <span className="w-5 h-0.5 bg-slate-800 rounded-full"></span>
             </button>
             <div className="text-2xl font-black tracking-widest wander-text-dark font-mono">
-              CAREERBUILDER<span className="text-blue-600 font-sans"></span>
+              CAREERPILOT<span className="text-blue-600 font-sans"></span>
             </div>
           </div>
 
@@ -138,7 +138,7 @@ function Home() {
           {/* Hero Content */}
           <div className="absolute inset-y-0 left-0 flex flex-col justify-center p-8 md:p-16 text-white space-y-4 max-w-xl md:max-w-2xl z-20 animate-in fade-in slide-in-from-left duration-700">
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-widest text-white leading-none font-mono drop-shadow-md">
-              CAREERBUILDER
+              CAREERPILOT
             </h1>
             <p className="text-sm md:text-base text-slate-200 max-w-xl font-medium leading-relaxed drop-shadow-sm">
               Discover breathtaking career opportunities across top platforms with curated jobs, AI insights, and hassle-free matching all in one platform.
@@ -166,7 +166,7 @@ function Home() {
           <div className="space-y-6 flex flex-col justify-between">
             <div className="space-y-4">
               <h2 className="text-2xl md:text-3xl font-extrabold wander-text-dark tracking-tight leading-tight">
-                Why Thousands of Job Seekers Choose CAREERBUILDER for Their Career Adventures
+                Why Thousands of Job Seekers Choose CAREERPILOT for Their Career Adventures
               </h2>
               <p className="text-sm text-slate-500 leading-relaxed">
                 From pristine platform mapping to smart resume building, we make exploring the careers marketplace easier, safer, and more exciting with expert-crafted AI matches and round-the-clock application support.
