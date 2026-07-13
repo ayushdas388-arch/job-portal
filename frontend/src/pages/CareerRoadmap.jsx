@@ -134,7 +134,7 @@ function CareerRoadmap() {
                   <textarea
                     rows="2"
                     placeholder="e.g. Python basics, MS Excel, HTML/CSS, basic maths, fast typing..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 text-slate-800 transition-all placeholder:text-slate-400"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 text-slate-800 transition-all placeholder:text-slate-400 wander-textarea"
                     value={currentSkills}
                     onChange={(e) => setCurrentSkills(e.target.value)}
                     style={{ color: '#0f172a', backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}

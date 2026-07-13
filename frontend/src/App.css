@@ -186,4 +186,9 @@ body .wander-search-input, html .wander-search-input {
   caret-color: #0f172a !important;
 }
 
+body .wander-textarea, html .wander-textarea {
+  color: #0f172a !important;
+  caret-color: #0f172a !important;
+}
+
 
