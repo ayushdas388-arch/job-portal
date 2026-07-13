@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import API from '../api/axios'
+import toast from 'react-hot-toast'
 
 const popularSkills = [
   'Python', 'JavaScript', 'React', 'Node.js', 'SQL', 'MongoDB',
@@ -27,7 +28,7 @@ function SkillGap() {
 
   const handleAnalyze = async () => {
     if (!targetRole.trim()) {
-      alert('Please enter a target role first (for example, "Frontend Developer").')
+      toast.error('Please enter a target role first (for example, "Frontend Developer").')
       return
     }
     setLoading(true)
@@ -39,7 +40,7 @@ function SkillGap() {
       setResult(data)
     } catch (error) {
       console.error('Skill gap error:', error)
-      alert('Analysis failed. Please check the backend logs.')
+      toast.error('Analysis failed. Please check the backend logs.')
     } finally {
       setLoading(false)
     }

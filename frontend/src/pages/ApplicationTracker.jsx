@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
+import toast from 'react-hot-toast'
 
 const STATUS_OPTIONS = ['Applied', 'Interview', 'Selected', 'Rejected']
 
@@ -52,7 +53,7 @@ function ApplicationTracker() {
 
   const addApplication = async () => {
     if (!form.company.trim()) {
-      alert('Please enter a company name.')
+      toast.error('Please enter a company name.')
       return
     }
     try {
@@ -62,7 +63,7 @@ function ApplicationTracker() {
       load()
     } catch (error) {
       console.error('Add application error:', error)
-      alert('Application could not be added. Please try again.')
+      toast.error('Application could not be added. Please try again.')
     }
   }
 

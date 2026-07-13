@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import API from '../api/axios'
 import TemplateGallery from '../components/templateGallery'
+import toast from 'react-hot-toast'
 
 const emptyEducation = { degree: '', institution: '', year: '', details: '' }
 const emptyExperience = { role: '', company: '', duration: '', description: '' }
@@ -140,7 +141,7 @@ function ResumeBuilder() {
   // Generate = enhance (best effort), then open the template gallery.
   const handleGenerate = async () => {
     if (!form.full_name.trim()) {
-      alert('Please enter your full name.')
+      toast.error('Please enter your full name.')
       return
     }
     await handleBuild()

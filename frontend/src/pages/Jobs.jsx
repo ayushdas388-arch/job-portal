@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
+import toast from 'react-hot-toast'
 
 const platformWallpapers = {
   linkedin: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&auto=format&fit=crop&q=80',
@@ -71,7 +72,7 @@ function Jobs() {
 
   const handleSave = async (item, category) => {
     if (!localStorage.getItem('token')) {
-      alert('Please login first to save.')
+      toast.error('Please login first to save.')
       return
     }
     try {
@@ -84,7 +85,7 @@ function Jobs() {
       setSaved((prev) => [...prev, item.title || item.site])
     } catch (error) {
       console.error('Save job error:', error)
-      alert('Could not save. Please try again.')
+      toast.error('Could not save. Please try again.')
     }
   }
 

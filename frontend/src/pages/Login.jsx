@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import API from '../api/axios'
 import Recaptcha from '../components/Recaptcha'
+import toast from 'react-hot-toast'
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -48,7 +49,7 @@ function Login() {
       localStorage.setItem('name', response.data.name)
       localStorage.setItem('role', response.data.role)
       localStorage.setItem('profile_image', response.data.profile_image || '')
-      alert(`Welcome back ${response.data.name}!`)
+      toast.success(`Welcome back ${response.data.name}!`)
       navigate('/')
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed!')

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import API from '../api/axios'
+import toast from 'react-hot-toast'
 
 function AIInterview() {
   const [started, setStarted] = useState(false)
@@ -15,7 +16,7 @@ function AIInterview() {
 
   const startInterview = async () => {
     if (!role.trim()) {
-      alert('Please enter a target role.')
+      toast.error('Please enter a target role.')
       return
     }
 
@@ -35,7 +36,7 @@ function AIInterview() {
       setHistory([{ role: 'interviewer', text: response.data.reply }])
     } catch (err) {
       console.error('Start interview error:', err)
-      alert('Failed to start interview. Please make sure the backend is running.')
+      toast.error('Failed to start interview. Please make sure the backend is running.')
       setStarted(false)
     } finally {
       setLoading(false)
@@ -73,7 +74,7 @@ function AIInterview() {
       }
     } catch (err) {
       console.error('Submit answer error:', err)
-      alert('Failed to submit answer. Please try again.')
+      toast.error('Failed to submit answer. Please try again.')
     } finally {
       setLoading(false)
     }

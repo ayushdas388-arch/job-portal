@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
+import toast from 'react-hot-toast'
 
 const allSkills = [
   'Python', 'JavaScript', 'React', 'Node.js', 'MongoDB', 'SQL',
@@ -65,12 +66,12 @@ function AIMatch() {
 
   const handleMatch = async () => {
     if (mode === 'skills' && selectedSkills.length === 0) {
-      alert('Please select at least one skill.')
+      toast.error('Please select at least one skill.')
       return
     }
 
     if (mode === 'resume' && !file) {
-      alert('Please upload a resume PDF.')
+      toast.error('Please upload a resume PDF.')
       return
     }
 
@@ -101,7 +102,7 @@ function AIMatch() {
     } catch (error) {
       console.error('Matching failed:', error)
       const detail = error.response?.data?.detail
-      alert(detail || 'Matching failed. Is the backend running? Please try again.')
+      toast.error(detail || 'Matching failed. Is the backend running? Please try again.')
     } finally {
       setLoading(false)
     }

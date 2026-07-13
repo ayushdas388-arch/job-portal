@@ -21,10 +21,12 @@ import CareerRoadmap from './pages/CareerRoadmap'
 import ATSScore from './pages/ATSScore'
 import TermsConditions from './pages/TermsConditions'
 import ForgotPassword from './pages/ForgotPassword'
+import { Toaster } from 'react-hot-toast'
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-center" reverseOrder={false} />
       {/* Purana Navbar hata kar naya Layout lagaya hai */}
       <Layout>
         <Routes>

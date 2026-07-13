@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
 import ATSHistoryPanel from '../components/ATSHistoryPanel'
+import toast from 'react-hot-toast'
 
 const emptyExam = {
   name: '',
@@ -61,7 +62,7 @@ function Dashboard() {
     const file = e.target.files[0]
     if (file) {
       if (file.size > 1.5 * 1024 * 1024) {
-        alert("Please upload an image smaller than 1.5MB to save storage space.")
+        toast.error("Please upload an image smaller than 1.5MB to save storage space.")
         return
       }
       const reader = new FileReader()
@@ -75,7 +76,7 @@ function Dashboard() {
           await API.patch('/auth/profile', { profile_image: base64Url })
         } catch (err) {
           console.error("Error saving photo:", err)
-          alert("Unable to save photo. Please try using a smaller image.")
+          toast.error("Unable to save photo. Please try using a smaller image.")
         }
       }
       reader.readAsDataURL(file)
@@ -112,7 +113,7 @@ function Dashboard() {
 
   const addExam = async () => {
     if (!form.name.trim()) {
-      alert('Enter the exam name.')
+      toast.error('Enter the exam name.')
       return
     }
     try {
@@ -122,7 +123,7 @@ function Dashboard() {
       load()
     } catch (error) {
       console.error('Add exam error:', error)
-      alert('Exam could not be added. Please try again.')
+      toast.error('Exam could not be added. Please try again.')
     }
   }
 

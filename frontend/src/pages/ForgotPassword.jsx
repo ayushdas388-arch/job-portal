@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import API from '../api/axios'
+import toast from 'react-hot-toast'
 
 function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -48,7 +49,7 @@ function ForgotPassword() {
         otp,
         new_password: newPassword,
       })
-      alert('Your password has been successfully updated. Please login.')
+      toast.success('Your password has been successfully updated. Please login.')
       navigate('/login')
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to reset password.')

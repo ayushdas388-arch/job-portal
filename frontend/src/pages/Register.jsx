@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import API from '../api/axios'
 import Recaptcha from '../components/Recaptcha'
+import toast from 'react-hot-toast'
 
 function Register() {
   const [firstName, setFirstName] = useState('')
@@ -75,7 +76,7 @@ function Register() {
         role: 'jobseeker',
         captcha_token: captchaToken,
       })
-      alert('Registration successful! Please login now.')
+      toast.success('Registration successful! Please login now.')
       navigate('/login')
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed!')
