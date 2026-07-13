@@ -262,6 +262,7 @@ async def dashboard_summary(current_user: dict = Depends(get_current_user)):
     best_ats = max((d["score"] for d in ats_docs), default=None)
 
     return {
+        "profile_image": current_user.get("profile_image", ""),
         "stats": {
             "total_exams": len(exams),
             "upcoming_exams": len(upcoming_exams),

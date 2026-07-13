@@ -61,6 +61,7 @@ class UserResponse(BaseModel):
     name: str
     email: str
     role: str
+    profile_image: Optional[str] = None
 
 
 def hash_password(password: str) -> str:
@@ -213,6 +214,7 @@ async def login(user: UserLogin, request: Request):
         "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         "role": db_user.get("role", "jobseeker"),
         "name": db_user.get("name", ""),
+        "profile_image": db_user.get("profile_image", ""),
     }
 
 
@@ -233,6 +235,7 @@ async def read_current_user(current_user: dict = Depends(get_current_user)):
         "name": current_user.get("name", ""),
         "email": current_user.get("email", ""),
         "role": current_user.get("role", "jobseeker"),
+        "profile_image": current_user.get("profile_image", ""),
     }
 
 
@@ -328,5 +331,21 @@ async def reset_password(data: ResetPasswordRequest):
     )
 
     return {"message": "Password has been successfully updated."}
+
+
+class ProfileUpdateRequest(BaseModel):
+    profile_image: str
+
+
+@router.patch("/profile")
+async def update_profile(
+    data: ProfileUpdateRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    await users_collection.update_one(
+        {"_id": current_user["_id"]},
+        {"$set": {"profile_image": data.profile_image}}
+    )
+    return {"message": "Profile updated successfully"}
 
 

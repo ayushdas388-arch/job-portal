@@ -45,11 +45,16 @@ function Dashboard() {
     { name: "Developer Female", url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&q=80" }
   ]
 
-  const selectAvatar = (url) => {
-    localStorage.setItem('profile_image', url)
-    setAvatar(url)
-    setShowAvatarModal(false)
-    window.dispatchEvent(new Event('avatar-changed'))
+  const selectAvatar = async (url) => {
+    try {
+      localStorage.setItem('profile_image', url)
+      setAvatar(url)
+      setShowAvatarModal(false)
+      window.dispatchEvent(new Event('avatar-changed'))
+      await API.patch('/auth/profile', { profile_image: url })
+    } catch (err) {
+      console.error("Error saving avatar:", err)
+    }
   }
 
   const handleCustomPhotoUpload = (e) => {
@@ -60,16 +65,17 @@ function Dashboard() {
         return
       }
       const reader = new FileReader()
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         try {
           const base64Url = reader.result
           localStorage.setItem('profile_image', base64Url)
           setAvatar(base64Url)
           setShowAvatarModal(false)
           window.dispatchEvent(new Event('avatar-changed'))
+          await API.patch('/auth/profile', { profile_image: base64Url })
         } catch (err) {
-          console.error("Local storage error:", err)
-          alert("Unable to save photo due to storage limits. Please use a smaller image.")
+          console.error("Error saving photo:", err)
+          alert("Unable to save photo. Please try using a smaller image.")
         }
       }
       reader.readAsDataURL(file)
@@ -88,6 +94,11 @@ function Dashboard() {
       setData(summary.data)
       setExams(examList.data)
       setSavedJobs(saved.data)
+      if (summary.data && summary.data.profile_image) {
+        localStorage.setItem('profile_image', summary.data.profile_image)
+        setAvatar(summary.data.profile_image)
+        window.dispatchEvent(new Event('avatar-changed'))
+      }
     } catch (error) {
       console.error('Dashboard load error:', error)
     } finally {
