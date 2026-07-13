@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
-import toast from 'react-hot-toast'
+import { toast } from 'react-toastify'
 
 const allSkills = [
   'Python', 'JavaScript', 'React', 'Node.js', 'MongoDB', 'SQL',

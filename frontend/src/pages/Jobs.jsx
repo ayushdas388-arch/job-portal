@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
-import toast from 'react-hot-toast'
+import { toast } from 'react-toastify'
 
 const platformWallpapers = {
   linkedin: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&auto=format&fit=crop&q=80',

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import API from '../api/axios'
-import toast from 'react-hot-toast'
+import { toast } from 'react-toastify'
 
 function ForgotPassword() {
   const [email, setEmail] = useState('')

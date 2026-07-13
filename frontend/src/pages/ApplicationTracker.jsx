@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
-import toast from 'react-hot-toast'
+import { toast } from 'react-toastify'
 
 const STATUS_OPTIONS = ['Applied', 'Interview', 'Selected', 'Rejected']
 

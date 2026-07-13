@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import API from '../api/axios'
 import Recaptcha from '../components/Recaptcha'
-import toast from 'react-hot-toast'
+import { toast } from 'react-toastify'
 
 function Register() {
   const [firstName, setFirstName] = useState('')

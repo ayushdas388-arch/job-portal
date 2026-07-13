@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
 import ATSHistoryPanel from '../components/ATSHistoryPanel'
-import toast from 'react-hot-toast'
+import { toast } from 'react-toastify'
 
 const emptyExam = {
   name: '',

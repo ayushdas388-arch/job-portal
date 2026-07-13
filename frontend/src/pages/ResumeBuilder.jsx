@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import API from '../api/axios'
 import TemplateGallery from '../components/templateGallery'
-import toast from 'react-hot-toast'
+import { toast } from 'react-toastify'
 
 const emptyEducation = { degree: '', institution: '', year: '', details: '' }
 const emptyExperience = { role: '', company: '', duration: '', description: '' }

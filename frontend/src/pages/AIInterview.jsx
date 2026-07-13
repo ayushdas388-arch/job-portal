@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import API from '../api/axios'
-import toast from 'react-hot-toast'
+import { toast } from 'react-toastify'
 
 function AIInterview() {
   const [started, setStarted] = useState(false)

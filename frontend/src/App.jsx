@@ -21,12 +21,13 @@ import CareerRoadmap from './pages/CareerRoadmap'
 import ATSScore from './pages/ATSScore'
 import TermsConditions from './pages/TermsConditions'
 import ForgotPassword from './pages/ForgotPassword'
-import { Toaster } from 'react-hot-toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 function App() {
   return (
     <BrowserRouter>
-      <Toaster position="top-center" reverseOrder={false} />
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick pauseOnFocusLoss draggable pauseOnHover theme="colored" />
       {/* Purana Navbar hata kar naya Layout lagaya hai */}
       <Layout>
         <Routes>
