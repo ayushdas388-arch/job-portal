@@ -273,7 +273,7 @@ function Quiz() {
     : 0
 
   useEffect(() => {
-    if (quiz && answeredCount === quiz.questions.length && quiz.questions.length > 0) {
+    if (quiz && answeredCount >= quiz.questions.length && quiz.questions.length > 0) {
       setTimeout(() => {
         const element = document.getElementById('quiz-completion-section')
         if (element) {
@@ -460,7 +460,23 @@ function Quiz() {
             })}
           </div>
           
-          {answeredCount === quiz.questions.length && quiz.questions.length > 0 && (
+          {answeredCount < quiz.questions.length && quiz.questions.length > 0 && (
+            <div className="pt-8 border-t border-slate-200 flex flex-col items-center text-center">
+              <div className="bg-slate-50 border border-slate-200/60 rounded-3xl p-6 max-w-md w-full space-y-3">
+                <p className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                  Quiz Progress: <span className="text-[#0f172a] font-extrabold">{answeredCount}</span> of <span className="text-[#0f172a] font-extrabold">{quiz.questions.length}</span> Answered
+                </p>
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-blue-600 h-full rounded-full transition-all duration-300"
+                    style={{ width: `${(answeredCount / quiz.questions.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {answeredCount >= quiz.questions.length && quiz.questions.length > 0 && (
             <div id="quiz-completion-section" className="pt-8 border-t border-slate-200 flex flex-col items-center text-center space-y-6">
               <div>
                 <h3 className="text-2xl font-black text-[#0f172a] mb-1">Performance Summary</h3>
