@@ -72,7 +72,7 @@ function Register() {
         email,
         phone: `${countryCode}${phone}`,
         password,
-        role: role,
+        role: 'jobseeker',
         captcha_token: captchaToken,
       })
       alert('Registration successful! Please login now.')
@@ -182,19 +182,6 @@ function Register() {
                 onKeyDown={(e) => handleKeyDown(e, 'password')}
               />
             </div>
-          </div>
-
-          {/* Role selector field */}
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold wander-text-dark uppercase tracking-wider">I want to join as*</label>
-            <select
-              className="w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="jobseeker">Job Seeker (Find and Apply to Jobs)</option>
-              <option value="company">Employer / Company (Post Jobs & Manage Candidates)</option>
-            </select>
           </div>
 
           {/* Password field */}
