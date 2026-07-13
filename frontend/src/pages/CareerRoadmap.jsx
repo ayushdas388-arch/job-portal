@@ -6,6 +6,20 @@ function CareerRoadmap() {
   const [roadmap, setRoadmap] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false)
+
+  // Questionnaire details state
+  const [education, setEducation] = useState('Graduation (Tech / IT)')
+  const [currentSkills, setCurrentSkills] = useState('')
+  const [experienceLevel, setExperienceLevel] = useState('Absolute Beginner (Fresher)')
+  const [learningPace, setLearningPace] = useState('3-5 hours/day')
+
+  const handleInitialSubmit = () => {
+    const trimmed = role.trim()
+    if (!trimmed) return
+    setError('')
+    setShowQuestionnaire(true)
+  }
 
   const generateRoadmap = async () => {
     const trimmed = role.trim()
@@ -14,8 +28,16 @@ function CareerRoadmap() {
     setError('')
     setLoading(true)
     setRoadmap(null)
+    setShowQuestionnaire(false)
+
     try {
-      const response = await API.post('/ai/roadmap', { target_role: trimmed })
+      const response = await API.post('/ai/roadmap', {
+        target_role: trimmed,
+        education,
+        current_skills: currentSkills.trim(),
+        experience_level: experienceLevel,
+        learning_pace: learningPace
+      })
       setRoadmap(response.data || [])
     } catch (err) {
       console.error('Roadmap generate error:', err)
@@ -53,17 +75,137 @@ function CareerRoadmap() {
             className="flex-1 bg-slate-100/50 hover:bg-slate-200/40 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-semibold"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && generateRoadmap()}
+            onKeyDown={(e) => e.key === 'Enter' && handleInitialSubmit()}
             disabled={loading}
           />
           <button 
-            onClick={generateRoadmap}
+            onClick={handleInitialSubmit}
             disabled={loading}
             className="bg-[#0f172a] hover:bg-blue-600 disabled:opacity-50 text-white text-xs font-bold py-3.5 px-8 rounded-xl transition-all shadow-md cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
           >
             {loading ? 'Designing path...' : 'Generate Path'}
           </button>
         </div>
+
+        {/* Questionnaire Modal */}
+        {showQuestionnaire && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border border-slate-100 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+              <div className="space-y-1">
+                <h3 className="text-xl font-extrabold text-slate-900">Personalize Your "{role}" Path</h3>
+                <p className="text-xs text-slate-500 font-bold">Help our career AI build the most effective route for you.</p>
+              </div>
+
+              <div className="space-y-4">
+                {/* Education Background */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">Kaha tak padhe ho? (Education Background)</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      "High School / 12th Pass",
+                      "Graduation (Non-Tech)",
+                      "Graduation (Tech / IT)",
+                      "Post-Graduation / PhD",
+                      "Self-Taught / Other"
+                    ].map((edu) => (
+                      <button
+                        key={edu}
+                        type="button"
+                        onClick={() => setEducation(edu)}
+                        className={`text-[10px] md:text-[11px] font-bold py-2.5 px-3 rounded-xl border text-left transition-all ${
+                          education === edu 
+                            ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' 
+                            : 'border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {edu}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Current Skills / Background */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">Kya kya acche se jante ho? (Current Skills)</label>
+                  <textarea
+                    rows="2"
+                    placeholder="e.g. Python basics, MS Excel, HTML/CSS, basic maths, fast typing..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 text-slate-800 transition-all placeholder:text-slate-400"
+                    value={currentSkills}
+                    onChange={(e) => setCurrentSkills(e.target.value)}
+                  />
+                </div>
+
+                {/* Prior Experience */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">Prior Technical Experience</label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      "Absolute Beginner (Fresher)",
+                      "Basic Practice / Academic Projects",
+                      "Experienced (Switching Role)"
+                    ].map((exp) => (
+                      <button
+                        key={exp}
+                        type="button"
+                        onClick={() => setExperienceLevel(exp)}
+                        className={`text-[10px] md:text-[11px] font-bold py-2.5 px-3 rounded-xl border text-left transition-all ${
+                          experienceLevel === exp 
+                            ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' 
+                            : 'border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {exp}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Daily Study Commitment / Pace */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">Daily Study Hours (Learning Pace)</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      "1-2 hours/day",
+                      "3-5 hours/day",
+                      "Full-time (6+ hrs)"
+                    ].map((pace) => (
+                      <button
+                        key={pace}
+                        type="button"
+                        onClick={() => setLearningPace(pace)}
+                        className={`text-[10px] md:text-[11px] font-bold py-2.5 px-3 rounded-xl border text-center transition-all ${
+                          learningPace === pace 
+                            ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' 
+                            : 'border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {pace}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowQuestionnaire(false)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-xl transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={generateRoadmap}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md cursor-pointer"
+                >
+                  Create Roadmap
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error message */}
         {error && (
@@ -94,9 +236,26 @@ function CareerRoadmap() {
                     {item.step}
                   </div>
                   {/* Info Card */}
-                  <div className="wander-bg-white p-6 rounded-3xl border border-slate-200/80 wander-badge-shadow flex-1 hover:shadow-md transition-shadow space-y-2">
-                    <h3 className="text-lg font-extrabold text-slate-800 tracking-tight">{item.title}</h3>
-                    <p className="text-xs md:text-sm leading-relaxed font-semibold" style={{ color: '#475569' }}>{item.desc}</p>
+                  <div className="wander-bg-white p-6 rounded-3xl border border-slate-200/80 wander-badge-shadow flex-1 hover:shadow-md transition-shadow space-y-4">
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-extrabold text-slate-800 tracking-tight">{item.title}</h3>
+                      <p className="text-xs md:text-sm leading-relaxed font-semibold text-slate-600">{item.desc}</p>
+                    </div>
+
+                    {/* Sub points / Bullet objectives */}
+                    {item.bullets && item.bullets.length > 0 && (
+                      <div className="pt-3 border-t border-slate-100 space-y-2.5">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Key Action Steps / Objective</h4>
+                        <ul className="space-y-2">
+                          {item.bullets.map((bullet, bIdx) => (
+                            <li key={bIdx} className="flex items-start gap-2.5 text-xs text-slate-600 font-semibold leading-relaxed">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span>
+                              <span>{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

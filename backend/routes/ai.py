@@ -574,6 +574,10 @@ async def skill_gap(data: SkillGapRequest):
 
 class RoadmapRequest(BaseModel):
     target_role: str = Field(min_length=1, max_length=120)
+    education: Optional[str] = None
+    current_skills: Optional[str] = None
+    experience_level: Optional[str] = None
+    learning_pace: Optional[str] = None
 
 
 def fallback_roadmap(target_role: str) -> List[dict]:
@@ -582,26 +586,90 @@ def fallback_roadmap(target_role: str) -> List[dict]:
     skills_str = ", ".join(skills) if skills else "relevant industry tools"
     
     return [
-        { "step": 1, "title": "Foundation & Fundamentals", "desc": f"Learn the absolute basics and core concepts required for a {target_role} path, focusing on {skills_str}." },
-        { "step": 2, "title": "Hands-on Practical Training", "desc": "Build 3-4 small, target-oriented practical exercises to gain confidence and experience." },
-        { "step": 3, "title": "Advanced Frameworks & Architecture", "desc": "Understand popular modern developer toolings, design patterns, and scaling strategies." },
-        { "step": 4, "title": "Resume & Portfolio Optimization", "desc": "Create a strong professional portfolio website showing off your practical builds, and align your resume." },
-        { "step": 5, "title": "Job Search, Networking & Interview Prep", "desc": "Practice technical interviews, prepare for coding challenges, and begin application outreach." }
+        { 
+            "step": 1, 
+            "title": "Foundation & Fundamentals", 
+            "desc": f"Learn the absolute basics and core concepts required for a {target_role} path, focusing on {skills_str}.",
+            "bullets": [
+                f"Master core syntax and essential logic rules for {skills_str}.",
+                "Understand data input/output, variables, control flow, and basic functions.",
+                "Build 2-3 simple terminal-based or basic scripts to consolidate learning."
+            ]
+        },
+        { 
+            "step": 2, 
+            "title": "Hands-on Practical Training", 
+            "desc": "Build 3-4 small, target-oriented practical exercises to gain confidence and experience.",
+            "bullets": [
+                "Set up a local development environment and version control system (Git/GitHub).",
+                "Create mini projects using standard library utilities and external modules.",
+                "Implement simple file handling, API consumption, or database CRUD operations."
+            ]
+        },
+        { 
+            "step": 3, 
+            "title": "Advanced Frameworks & Architecture", 
+            "desc": "Understand popular modern developer toolings, design patterns, and scaling strategies.",
+            "bullets": [
+                "Learn object-oriented patterns, clean code principles, and optimization techniques.",
+                "Deep dive into standard libraries, frameworks, and deployment workflows.",
+                "Write unit tests and follow mock integration guidelines to test edge cases."
+            ]
+        },
+        { 
+            "step": 4, 
+            "title": "Resume & Portfolio Optimization", 
+            "desc": "Create a strong professional portfolio website showing off your practical builds, and align your resume.",
+            "bullets": [
+                "Clean up and document your top 3 project repositories on GitHub with READMEs.",
+                "Build a modern responsive portfolio site using clean styling.",
+                "Format your resume to align with ATS standards, focusing on key achievements."
+            ]
+        },
+        { 
+            "step": 5, 
+            "title": "Job Search, Networking & Interview Prep", 
+            "desc": "Practice technical interviews, prepare for coding challenges, and begin application outreach.",
+            "bullets": [
+                "Solve programming challenges on platforms like LeetCode or HackerRank.",
+                "Perform mockup interview sessions covering behavior, systems, and logic.",
+                "Apply to positions using targeted emails and networking strategies."
+            ]
+        }
     ]
 
 
-def groq_roadmap(target_role: str) -> List[dict]:
+def groq_roadmap(
+    target_role: str,
+    education: Optional[str] = None,
+    current_skills: Optional[str] = None,
+    experience_level: Optional[str] = None,
+    learning_pace: Optional[str] = None
+) -> List[dict]:
     if not GROQ_API_KEY:
         return fallback_roadmap(target_role)
 
+    background_clause = ""
+    if education:
+        background_clause += f"\n- Highest Education: {education}"
+    if current_skills:
+        background_clause += f"\n- Already Knows/Skills: {current_skills}"
+    if experience_level:
+        background_clause += f"\n- Prior Tech Experience: {experience_level}"
+    if learning_pace:
+        background_clause += f"\n- Preferred Learning Pace/Commitment: {learning_pace}"
+
     prompt = f"""
-You are an elite career counselor and industry mentor. Generate a structured step-by-step career roadmap for someone trying to become a "{target_role}".
+You are an elite career counselor and industry mentor. Generate a highly customized, step-by-step career roadmap for someone trying to become a "{target_role}".
+
+Candidate's Background details:{background_clause}
 
 Provide a logical sequence of 5 distinct phases/steps.
 For each step, include:
 - A numeric step number (1 to 5)
 - A concise title (e.g., "Learn Backend Foundations")
 - An encouraging, detailed description containing specific technologies, topics, and actions the candidate must take during this step.
+- A list of 3-4 specific action items/sub-points (bullets) to achieve in this step, tailored to their background.
 
 Return ONLY a JSON object with this exact shape (do not wrap in markdown or add extra chat text, return raw JSON):
 {{
@@ -609,27 +677,36 @@ Return ONLY a JSON object with this exact shape (do not wrap in markdown or add 
     {{
       "step": 1,
       "title": "Foundation & Syntax",
-      "desc": "Detailed explanation of what to learn and build in step 1."
+      "desc": "Detailed explanation of what to learn and build in step 1.",
+      "bullets": [
+        "Action item 1",
+        "Action item 2",
+        "Action item 3"
+      ]
     }},
     {{
       "step": 2,
       "title": "...",
-      "desc": "..."
+      "desc": "...",
+      "bullets": ["...", "..."]
     }},
     {{
       "step": 3,
       "title": "...",
-      "desc": "..."
+      "desc": "...",
+      "bullets": ["...", "..."]
     }},
     {{
       "step": 4,
       "title": "...",
-      "desc": "..."
+      "desc": "...",
+      "bullets": ["...", "..."]
     }},
     {{
       "step": 5,
       "title": "...",
-      "desc": "..."
+      "desc": "...",
+      "bullets": ["...", "..."]
     }}
   ]
 }}
@@ -647,10 +724,14 @@ Return ONLY a JSON object with this exact shape (do not wrap in markdown or add 
         # Standardize structure to ensure steps are sorted and well-formed
         formatted = []
         for index, item in enumerate(steps, start=1):
+            bullets = item.get("bullets")
+            if not isinstance(bullets, list):
+                bullets = ["Understand the required tools for this step.", "Practice hands-on coding exercises.", "Build a simple project."]
             formatted.append({
                 "step": int(item.get("step") or index),
                 "title": str(item.get("title") or f"Phase {index}"),
-                "desc": str(item.get("desc") or "Learn the required tools for this step.")
+                "desc": str(item.get("desc") or "Learn the required tools for this step."),
+                "bullets": [str(b) for b in bullets if b]
             })
         return formatted
     except Exception as exc:
@@ -660,7 +741,13 @@ Return ONLY a JSON object with this exact shape (do not wrap in markdown or add 
 
 @router.post("/roadmap")
 async def get_roadmap(data: RoadmapRequest):
-    return groq_roadmap(data.target_role)
+    return groq_roadmap(
+        data.target_role,
+        education=data.education,
+        current_skills=data.current_skills,
+        experience_level=data.experience_level,
+        learning_pace=data.learning_pace
+    )
 
 
 class ExamUpdatesRequest(BaseModel):
