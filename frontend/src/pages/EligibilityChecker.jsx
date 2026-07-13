@@ -72,7 +72,6 @@ function EligibilityChecker() {
         
         {/* Page Header */}
         <div className="text-center space-y-2 py-4">
-          <div className="text-xs font-bold text-blue-600 uppercase tracking-widest block">Core Tool</div>
           <h1 className="text-3xl md:text-4xl font-extrabold wander-text-dark tracking-tight">Eligibility Checker</h1>
           <p className="text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
             Enter your age, qualifications, and category details to check which public and private exams you are eligible to apply for.
