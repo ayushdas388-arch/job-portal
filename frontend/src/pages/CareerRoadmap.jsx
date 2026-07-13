@@ -90,16 +90,19 @@ function CareerRoadmap() {
         {/* Questionnaire Modal */}
         {showQuestionnaire && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border border-slate-100 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div 
+              className="wander-bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border border-slate-200 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+              style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#e2e8f0' }}
+            >
               <div className="space-y-1">
-                <h3 className="text-xl font-extrabold text-slate-900">Personalize Your "{role}" Path</h3>
-                <p className="text-xs text-slate-500 font-bold">Help our career AI build the most effective route for you.</p>
+                <h3 className="text-xl font-extrabold text-slate-900" style={{ color: '#0f172a' }}>Personalize Your "{role}" Path</h3>
+                <p className="text-xs text-slate-500 font-bold" style={{ color: '#64748b' }}>Help our career AI build the most effective route for you.</p>
               </div>
 
               <div className="space-y-4">
                 {/* Education Background */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">Kaha tak padhe ho? (Education Background)</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider" style={{ color: '#475569' }}>Education Level</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       "High School / 12th Pass",
@@ -112,11 +115,12 @@ function CareerRoadmap() {
                         key={edu}
                         type="button"
                         onClick={() => setEducation(edu)}
-                        className={`text-[10px] md:text-[11px] font-bold py-2.5 px-3 rounded-xl border text-left transition-all ${
+                        className="text-[10px] md:text-[11px] font-bold py-2.5 px-3 rounded-xl border text-left transition-all cursor-pointer"
+                        style={
                           education === edu 
-                            ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' 
-                            : 'border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100'
-                        }`}
+                            ? { backgroundColor: '#eff6ff', borderColor: '#3b82f6', color: '#1d4ed8' } 
+                            : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#475569' }
+                        }
                       >
                         {edu}
                       </button>
@@ -126,19 +130,20 @@ function CareerRoadmap() {
 
                 {/* Current Skills / Background */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">Kya kya acche se jante ho? (Current Skills)</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider" style={{ color: '#475569' }}>Current Skills & Technologies</label>
                   <textarea
                     rows="2"
                     placeholder="e.g. Python basics, MS Excel, HTML/CSS, basic maths, fast typing..."
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 text-slate-800 transition-all placeholder:text-slate-400"
                     value={currentSkills}
                     onChange={(e) => setCurrentSkills(e.target.value)}
+                    style={{ color: '#0f172a', backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}
                   />
                 </div>
 
                 {/* Prior Experience */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">Prior Technical Experience</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider" style={{ color: '#475569' }}>Prior Technical Experience</label>
                   <div className="flex flex-wrap gap-2">
                     {[
                       "Absolute Beginner (Fresher)",
@@ -149,11 +154,12 @@ function CareerRoadmap() {
                         key={exp}
                         type="button"
                         onClick={() => setExperienceLevel(exp)}
-                        className={`text-[10px] md:text-[11px] font-bold py-2.5 px-3 rounded-xl border text-left transition-all ${
+                        className="text-[10px] md:text-[11px] font-bold py-2.5 px-3 rounded-xl border text-left transition-all cursor-pointer"
+                        style={
                           experienceLevel === exp 
-                            ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' 
-                            : 'border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100'
-                        }`}
+                            ? { backgroundColor: '#eff6ff', borderColor: '#3b82f6', color: '#1d4ed8' } 
+                            : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#475569' }
+                        }
                       >
                         {exp}
                       </button>
@@ -163,7 +169,7 @@ function CareerRoadmap() {
 
                 {/* Daily Study Commitment / Pace */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">Daily Study Hours (Learning Pace)</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider" style={{ color: '#475569' }}>Daily Study Commitment</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       "1-2 hours/day",
@@ -174,11 +180,12 @@ function CareerRoadmap() {
                         key={pace}
                         type="button"
                         onClick={() => setLearningPace(pace)}
-                        className={`text-[10px] md:text-[11px] font-bold py-2.5 px-3 rounded-xl border text-center transition-all ${
+                        className="text-[10px] md:text-[11px] font-bold py-2.5 px-3 rounded-xl border text-center transition-all cursor-pointer"
+                        style={
                           learningPace === pace 
-                            ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' 
-                            : 'border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100'
-                        }`}
+                            ? { backgroundColor: '#eff6ff', borderColor: '#3b82f6', color: '#1d4ed8' } 
+                            : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#475569' }
+                        }
                       >
                         {pace}
                       </button>
@@ -191,14 +198,16 @@ function CareerRoadmap() {
                 <button
                   type="button"
                   onClick={() => setShowQuestionnaire(false)}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-xl transition-all cursor-pointer"
+                  className="flex-1 font-bold text-xs py-3 rounded-xl transition-all cursor-pointer border"
+                  style={{ backgroundColor: '#f1f5f9', color: '#475569', borderColor: '#cbd5e1' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={generateRoadmap}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md cursor-pointer"
+                  className="flex-1 font-bold text-xs py-3 rounded-xl transition-all shadow-md cursor-pointer"
+                  style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
                 >
                   Create Roadmap
                 </button>
