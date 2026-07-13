@@ -61,16 +61,16 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
-app.include_router(auth.router)
-app.include_router(jobs.router)
-app.include_router(ai.router)
-app.include_router(dashboard.router)
-app.include_router(applications.router)
-app.include_router(notifications.router)
-app.include_router(prep.router)
-app.include_router(eligibility.router)
-app.include_router(interview.router)
-app.include_router(ats.router)
+app.include_router(auth.router, prefix="/api")
+app.include_router(jobs.router, prefix="/api")
+app.include_router(ai.router, prefix="/api")
+app.include_router(dashboard.router, prefix="/api")
+app.include_router(applications.router, prefix="/api")
+app.include_router(notifications.router, prefix="/api")
+app.include_router(prep.router, prefix="/api")
+app.include_router(eligibility.router, prefix="/api")
+app.include_router(interview.router, prefix="/api")
+app.include_router(ats.router, prefix="/api")
 
 
 @app.get("/")
