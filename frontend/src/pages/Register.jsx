@@ -21,98 +21,15 @@ function Register() {
   const captchaRef = useRef(null)
   const navigate = useNavigate()
 
-  const [showGoogleChooser, setShowGoogleChooser] = useState(false)
-  const [customEmail, setCustomEmail] = useState('')
-  const [customName, setCustomName] = useState('')
-
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-
-  useEffect(() => {
-    let active = true
-    API.get('/auth/config')
-      .then((res) => {
-        if (!active) return
-        setCaptchaEnabled(res.data.captcha_enabled)
-        setSiteKey(res.data.recaptcha_site_key || '')
-      })
-      .catch(() => {
-        if (active) setCaptchaEnabled(false)
-      })
-    return () => {
-      active = false
+  const handleGoogleRedirect = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    if (!clientId) {
+      toast.error("Google Client ID is not configured in the frontend environment.")
+      return
     }
-  }, [])
-
-  useEffect(() => {
-    if (!googleClientId) return
-
-    const script = document.createElement('script')
-    script.src = 'https://accounts.google.com/gsi/client'
-    script.async = true
-    script.defer = true
-    script.onload = () => {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleGoogleResponse,
-        })
-        window.google.accounts.id.renderButton(
-          document.getElementById('google-signup-btn'),
-          { theme: 'outline', size: 'large', width: '380' }
-        )
-      }
-    }
-    document.body.appendChild(script)
-    return () => {
-      document.body.removeChild(script)
-    }
-  }, [googleClientId])
-
-  const handleGoogleResponse = async (response) => {
-    setLoading(true)
-    setError('')
-    try {
-      const payload = JSON.parse(atob(response.credential.split('.')[1]))
-      const res = await API.post('/auth/google', {
-        email: payload.email,
-        name: payload.name,
-        profile_image: payload.picture,
-        credential: response.credential,
-      })
-      localStorage.setItem('token', res.data.access_token)
-      localStorage.setItem('name', res.data.name)
-      localStorage.setItem('role', res.data.role)
-      localStorage.setItem('profile_image', res.data.profile_image || '')
-      toast.success(`Welcome ${res.data.name}!`)
-      navigate('/')
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Google Login failed!')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDemoGoogleLogin = async (email, name, picture) => {
-    setShowGoogleChooser(false)
-    setLoading(true)
-    setError('')
-    try {
-      const res = await API.post('/auth/google', {
-        email,
-        name,
-        profile_image: picture,
-      })
-      localStorage.setItem('token', res.data.access_token)
-      localStorage.setItem('name', res.data.name)
-      localStorage.setItem('role', res.data.role)
-      localStorage.setItem('profile_image', res.data.profile_image || '')
-      toast.success(`Welcome ${res.data.name}!`)
-      navigate('/')
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Google Login failed!')
-    } finally {
-      setLoading(false)
-    }
+    const redirectUri = `${window.location.origin}/google-callback`
+    const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20email%20profile&prompt=select_account`
+    window.location.href = oauthUrl
   }
 
   const handleKeyDown = (e, nextFieldId) => {
@@ -320,122 +237,25 @@ function Register() {
           <div className="flex-grow border-t wander-divider-line"></div>
         </div>
 
-        {googleClientId ? (
-          <div className="flex justify-center" id="google-signup-btn"></div>
-        ) : (
-          <button
-            onClick={() => setShowGoogleChooser(true)}
-            type="button"
-            className="w-full wander-google-btn text-xs font-extrabold py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2.5 cursor-pointer"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" width="16" height="16">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-            </svg>
-            Continue with Google
-          </button>
-        )}
+        <button
+          onClick={handleGoogleRedirect}
+          type="button"
+          className="w-full wander-google-btn text-xs font-extrabold py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2.5 cursor-pointer"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" width="16" height="16">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+          </svg>
+          Continue with Google
+        </button>
 
         <p className="text-center text-xs text-slate-500 font-semibold pt-2">
           Already have an account?{' '}
           <Link to="/login" className="text-blue-600 hover:underline font-bold">Login</Link>
         </p>
       </div>
-
-      {showGoogleChooser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden text-slate-800 space-y-6 p-6">
-            <div className="text-center space-y-2">
-              <svg className="w-8 h-8 mx-auto" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-              </svg>
-              <h3 className="text-md font-bold tracking-tight text-slate-800">Sign in with Google</h3>
-              <p className="text-[11px] text-slate-500 font-semibold bg-blue-50/50 text-blue-700 py-1.5 px-3 rounded-lg inline-block">
-                Demo Mode: Select or enter a profile
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <button
-                onClick={() => handleDemoGoogleLogin('ayushdas388@gmail.com', 'Ayush Das', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150')}
-                type="button"
-                className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all text-left cursor-pointer"
-              >
-                <img 
-                  className="w-9 h-9 rounded-full object-cover border border-slate-200" 
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150" 
-                  alt="Ayush"
-                />
-                <div className="leading-tight">
-                  <div className="text-xs font-black text-slate-800">Ayush Das</div>
-                  <div className="text-[10px] text-slate-500 font-medium">ayushdas388@gmail.com</div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleDemoGoogleLogin('guest.pilot@gmail.com', 'Guest Pilot', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150')}
-                type="button"
-                className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all text-left cursor-pointer"
-              >
-                <img 
-                  className="w-9 h-9 rounded-full object-cover border border-slate-200" 
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" 
-                  alt="Guest"
-                />
-                <div className="leading-tight">
-                  <div className="text-xs font-black text-slate-800">Guest Pilot</div>
-                  <div className="text-[10px] text-slate-500 font-medium">guest.pilot@gmail.com</div>
-                </div>
-              </button>
-            </div>
-
-            <div className="border-t border-slate-100 pt-4 space-y-3">
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Use custom email</div>
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-slate-400 text-slate-800 font-semibold"
-                />
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  value={customEmail}
-                  onChange={(e) => setCustomEmail(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-slate-400 text-slate-800 font-semibold"
-                />
-              </div>
-              <button
-                onClick={() => {
-                  if (customEmail.trim() && customName.trim()) {
-                    handleDemoGoogleLogin(customEmail.trim(), customName.trim(), '')
-                  }
-                }}
-                disabled={!customEmail.trim() || !customName.trim()}
-                type="button"
-                className="w-full bg-[#0f172a] hover:bg-blue-600 disabled:bg-slate-200 text-white text-xs font-extrabold py-2.5 rounded-lg transition-all cursor-pointer"
-              >
-                Sign in with Custom Profile
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowGoogleChooser(false)}
-              type="button"
-              className="w-full border border-slate-200 text-slate-600 text-xs font-bold py-2.5 rounded-lg hover:bg-slate-50 transition-all cursor-pointer text-center"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

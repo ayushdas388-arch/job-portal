@@ -421,3 +421,121 @@ async def google_login(data: GoogleLoginRequest):
         }
 
 
+class GoogleCallbackRequest(BaseModel):
+    code: str
+    redirect_uri: str
+
+
+@router.post("/google-callback")
+async def google_callback(request: GoogleCallbackRequest):
+    from config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=500,
+            detail="Google OAuth is not configured on the server. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."
+        )
+
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": request.code,
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "redirect_uri": request.redirect_uri,
+        "grant_type": "authorization_code",
+    }
+    
+    import requests
+    try:
+        resp = requests.post(token_url, data=data, timeout=10)
+        resp.raise_for_status()
+        token_data = resp.json()
+    except Exception as exc:
+        logger.error(f"Failed to exchange Google OAuth code: {exc}")
+        raise HTTPException(
+            status_code=400,
+            detail="Failed to exchange authorization code with Google."
+        )
+
+    access_token = token_data.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=400, detail="No access token returned from Google")
+
+    userinfo_url = "https://www.googleapis.com/oauth2/v3/userinfo"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    try:
+        resp = requests.get(userinfo_url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        user_info = resp.json()
+    except Exception as exc:
+        logger.error(f"Failed to fetch Google userinfo: {exc}")
+        raise HTTPException(
+            status_code=400,
+            detail="Failed to fetch user profile information from Google."
+        )
+
+    email = user_info.get("email", "").strip().lower()
+    name = user_info.get("name", "").strip()
+    profile_image = user_info.get("picture", "")
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid email returned from Google")
+
+    db_user = await users_collection.find_one(
+        {"email": {"$regex": f"^{re.escape(email)}$", "$options": "i"}}
+    )
+
+    if db_user:
+        if not db_user.get("profile_image") and profile_image:
+            await users_collection.update_one(
+                {"_id": db_user["_id"]},
+                {"$set": {"profile_image": profile_image}}
+            )
+            db_user["profile_image"] = profile_image
+
+        token = create_token(str(db_user["_id"]), db_user.get("role", "jobseeker"))
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "role": db_user.get("role", "jobseeker"),
+            "name": db_user.get("name", ""),
+            "profile_image": db_user.get("profile_image", ""),
+        }
+    else:
+        name_parts = name.split(" ", 1)
+        first_name = name_parts[0] if name_parts else "Google"
+        last_name = name_parts[1] if len(name_parts) > 1 else "User"
+
+        new_user = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "name": name or f"{first_name} {last_name}",
+            "email": email,
+            "phone": "",
+            "password": "",
+            "role": "jobseeker",
+            "profile_image": profile_image,
+            "created_at": datetime.now(timezone.utc),
+        }
+
+        try:
+            result = await users_collection.insert_one(new_user)
+            user_id = str(result.inserted_id)
+        except DuplicateKeyError as exc:
+            db_user = await users_collection.find_one({"email": email})
+            if not db_user:
+                raise HTTPException(status_code=409, detail="Registration failed due to conflict") from exc
+            user_id = str(db_user["_id"])
+            new_user = db_user
+
+        token = create_token(user_id, "jobseeker")
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "role": "jobseeker",
+            "name": new_user.get("name", ""),
+            "profile_image": new_user.get("profile_image", ""),
+        }
+
+

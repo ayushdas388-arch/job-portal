@@ -21,6 +21,7 @@ import CareerRoadmap from './pages/CareerRoadmap'
 import ATSScore from './pages/ATSScore'
 import TermsConditions from './pages/TermsConditions'
 import ForgotPassword from './pages/ForgotPassword'
+import GoogleCallback from './pages/GoogleCallback'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -35,6 +36,7 @@ function App() {
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/google-callback" element={<GoogleCallback />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/ai-match" element={<AIMatch />} />
           <Route path="/resume-builder" element={<ResumeBuilder />} />
