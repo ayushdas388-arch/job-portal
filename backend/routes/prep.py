@@ -12,11 +12,14 @@ from datetime import date
 from typing import List, Optional
 
 import requests
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 
 from routes.ai import query_groq, query_groq_async, strip_json_fence
 from config import GROQ_API_KEY
+from routes.auth import get_current_user
+from database import study_plans_collection, exams_collection
+from bson import ObjectId
 import logging
 
 logger = logging.getLogger(__name__)
@@ -443,22 +446,161 @@ def groq_quiz(data: QuizRequest) -> dict:
             fallback["note"] = "Groq API Quota Exceeded (Rate Limit). Showing limited sample questions for now."
         return fallback
 
+def _study_plan_helper(doc: dict) -> dict:
+    return {
+        "id": str(doc["_id"]),
+        "target": doc.get("target", ""),
+        "weeks": doc.get("weeks", 0),
+        "hours_per_day": doc.get("hours_per_day", 3),
+        "summary": doc.get("summary", ""),
+        "plan": doc.get("plan", []),
+        "source": doc.get("source", "fallback")
+    }
+
+class ToggleTaskRequest(BaseModel):
+    target: str
+    week: int
+    task_id: str
+    completed: bool
+
 # ---------------------------------------------------------------------------
-# Endpoints (public - no login needed, like Skill Gap)
+# Endpoints
 # ---------------------------------------------------------------------------
 
 @router.get("/resources")
 async def get_resources():
     return {"library": RESOURCE_LIBRARY}
 
+@router.get("/study-plan/{target}")
+async def get_study_plan(
+    target: str,
+    current_user: dict = Depends(get_current_user)
+):
+    plan_doc = await study_plans_collection.find_one({
+        "user_id": current_user["_id"],
+        "target": target
+    })
+    if not plan_doc:
+        raise HTTPException(status_code=404, detail="Study plan not found")
+    return _study_plan_helper(plan_doc)
+
 @router.post("/study-plan")
-async def study_plan(data: StudyPlanRequest):
-    return groq_study_plan(data)
+async def study_plan(
+    data: StudyPlanRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    # Check if user already has a study plan for this target
+    existing = await study_plans_collection.find_one({
+        "user_id": current_user["_id"],
+        "target": data.target
+    })
+    if existing:
+        return _study_plan_helper(existing)
+
+    # Generate plan
+    plan_data = groq_study_plan(data)
+    
+    # Map tasks to checkable items
+    doc = {
+        "user_id": current_user["_id"],
+        "target": data.target,
+        "weeks": plan_data["weeks"],
+        "hours_per_day": plan_data["hours_per_day"],
+        "summary": plan_data["summary"],
+        "plan": [
+            {
+                "week": w["week"],
+                "focus": w["focus"],
+                "tasks": [
+                    {
+                        "id": f"w{w['week']}t{idx}",
+                        "text": t,
+                        "completed": False
+                    }
+                    for idx, t in enumerate(w["tasks"])
+                ]
+            }
+            for w in plan_data["plan"]
+        ],
+        "source": plan_data["source"]
+    }
+    
+    result = await study_plans_collection.insert_one(doc)
+    created = await study_plans_collection.find_one({"_id": result.inserted_id})
+    return _study_plan_helper(created)
+
+@router.patch("/study-plan/toggle-task")
+async def toggle_task(
+    request: ToggleTaskRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    plan_doc = await study_plans_collection.find_one({
+        "user_id": current_user["_id"],
+        "target": request.target
+    })
+    if not plan_doc:
+        raise HTTPException(status_code=404, detail="Study plan not found")
+        
+    updated = False
+    total_tasks = 0
+    for week in plan_doc.get("plan", []):
+        for task in week.get("tasks", []):
+            total_tasks += 1
+            if week["week"] == request.week and task["id"] == request.task_id:
+                if task["completed"] != request.completed:
+                    task["completed"] = request.completed
+                    updated = True
+                    
+    if not updated:
+        return {"status": "no_change", "plan": _study_plan_helper(plan_doc)}
+        
+    await study_plans_collection.replace_one({"_id": plan_doc["_id"]}, plan_doc)
+    
+    task_weight = max(1, 100 // total_tasks) if total_tasks > 0 else 5
+    
+    topic_lower = request.target.strip().lower()
+    cursor = exams_collection.find({"user_id": current_user["_id"]})
+    exams = [doc async for doc in cursor]
+    
+    matched_exam = None
+    for exam in exams:
+        name_lower = exam.get("name", "").lower()
+        cat_lower = exam.get("category", "").lower()
+        if (topic_lower in name_lower or name_lower in topic_lower or
+            topic_lower in cat_lower or cat_lower in topic_lower):
+            matched_exam = exam
+            break
+            
+    exam_status = "no_matching_exam"
+    new_progress = None
+    
+    if matched_exam:
+        current_progress = matched_exam.get("progress", 0)
+        if request.completed:
+            new_progress = min(100, current_progress + task_weight)
+        else:
+            new_progress = max(0, current_progress - task_weight)
+            
+        await exams_collection.update_one(
+            {"_id": matched_exam["_id"]},
+            {"$set": {"progress": new_progress}}
+        )
+        exam_status = "success"
+        
+    return {
+        "status": "success",
+        "plan": _study_plan_helper(plan_doc),
+        "exam_updated": exam_status,
+        "exam_name": matched_exam.get("name") if matched_exam else None,
+        "new_progress": new_progress
+    }
 
 @router.post("/quiz")
-async def quiz(data: QuizRequest):
-    # Try Groq AI first to generate tailored questions matching the exact topic and difficulty.
-    # If Groq is unavailable or fails, fall back to OpenTDB, and then to the static bank.
+async def quiz(
+    data: QuizRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    # Try Groq AI first
     groq_res = groq_quiz(data)
     if groq_res.get("source") == "groq":
         return groq_res

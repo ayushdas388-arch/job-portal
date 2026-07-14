@@ -16,6 +16,7 @@ saved_jobs_collection = db["saved_jobs"]
 applications_collection = db["applications"]
 notification_settings_collection = db["notification_settings"]
 ats_scores_collection = db["ats_scores"]
+study_plans_collection = db["study_plans"]
 
 async def ping_database() -> None:
     await client.admin.command("ping")
@@ -54,6 +55,10 @@ async def ensure_indexes() -> None:
     await ats_scores_collection.create_index(
         [("user_id", ASCENDING), ("created_at", DESCENDING)],
         name="ats_scores_by_user_date",
+    )
+    await study_plans_collection.create_index(
+        [("user_id", ASCENDING), ("target", ASCENDING)],
+        name="study_plans_by_user_target",
     )
 
 def close_database() -> None:

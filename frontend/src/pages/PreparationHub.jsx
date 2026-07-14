@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
+import { toast } from 'react-toastify'
 
 const TABS = [
   { key: 'resources', label: 'Resources' },
@@ -147,6 +148,7 @@ const inputClass =
   'w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-slate-400 text-[#0f172a] font-semibold wander-search-input transition-all'
 
 function StudyPlan() {
+  const token = localStorage.getItem('token')
   const [form, setForm] = useState({ target: '', exam_date: '', hours_per_day: 3, level: 'beginner' })
   const [plan, setPlan] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -171,6 +173,47 @@ function StudyPlan() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleToggleTask = async (weekNum, taskId, completed) => {
+    try {
+      const response = await API.patch('/prep/study-plan/toggle-task', {
+        target: plan.target,
+        week: weekNum,
+        task_id: taskId,
+        completed
+      })
+      setPlan(response.data.plan)
+      if (response.data.exam_updated === 'success') {
+        const percentChange = response.data.new_progress
+        toast.success(`Progress updated for ${response.data.exam_name}! Current Progress: ${percentChange}%`)
+      }
+    } catch (error) {
+      console.error('Toggle task error:', error)
+      toast.error('Failed to update task. Please try again.')
+    }
+  }
+
+  if (!token) {
+    return (
+      <div className="py-12 px-6 text-center select-none animate-in fade-in duration-200">
+        <div className="w-20 h-20 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-slate-200/80 shadow-inner">
+          <svg className="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-black text-[#0f172a] mb-2 tracking-tight">AI Study Planner</h2>
+        <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6 leading-relaxed font-semibold">
+          You must be logged in to create checkable weekly study plans and automatically link your progress to exams.
+        </p>
+        <Link 
+          to="/login" 
+          className="inline-block bg-[#0f172a] hover:bg-blue-600 text-white text-xs font-extrabold px-8 py-3.5 rounded-2xl transition-all shadow-md uppercase tracking-wider cursor-pointer text-center"
+        >
+          Login to Account
+        </Link>
+      </div>
+    )
   }
 
   return (
@@ -244,9 +287,19 @@ function StudyPlan() {
                 <p className="font-black text-slate-800 text-sm">
                   Week {w.week}: <span className="wander-text-dark underline decoration-slate-300 decoration-2 underline-offset-4">{w.focus}</span>
                 </p>
-                <ul className="list-disc list-inside text-xs text-slate-600 font-semibold mt-2 space-y-1">
-                  {w.tasks.map((task, i) => (
-                    <li key={i} className="leading-relaxed">{task}</li>
+                <ul className="list-none text-xs text-slate-600 font-semibold mt-3 space-y-2">
+                  {w.tasks.map((task) => (
+                    <li key={task.id} className="flex items-center gap-2.5 leading-relaxed">
+                      <input
+                        type="checkbox"
+                        checked={task.completed}
+                        onChange={(e) => handleToggleTask(w.week, task.id, e.target.checked)}
+                        className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500/20 cursor-pointer"
+                      />
+                      <span className={task.completed ? 'line-through text-slate-400 font-medium' : 'wander-text-dark font-medium'}>
+                        {task.text}
+                      </span>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -266,6 +319,7 @@ function Quiz() {
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
   const [showTopicSwitchPrompt, setShowTopicSwitchPrompt] = useState(false)
+  const [autoProgressSubmitted, setAutoProgressSubmitted] = useState(false)
 
   const answeredCount = Object.keys(answers).length
   const score = quiz
@@ -273,7 +327,23 @@ function Quiz() {
     : 0
 
   useEffect(() => {
-    if (quiz && answeredCount >= quiz.questions.length && quiz.questions.length > 0) {
+    if (quiz && answeredCount >= quiz.questions.length && quiz.questions.length > 0 && !autoProgressSubmitted) {
+      setAutoProgressSubmitted(true)
+      ;(async () => {
+        try {
+          const response = await API.post('/dashboard/exams/auto-progress', {
+            topic: quiz.topic,
+            type: 'quiz'
+          })
+          if (response.data.status === 'success') {
+            const percentChange = response.data.new_progress
+            toast.success(`Quiz completed! Progress updated for ${response.data.exam_name}! Current Progress: ${percentChange}%`)
+          }
+        } catch (error) {
+          console.error('Quiz auto-progress error:', error)
+        }
+      })()
+
       setTimeout(() => {
         const element = document.getElementById('quiz-completion-section')
         if (element) {
@@ -281,7 +351,7 @@ function Quiz() {
         }
       }, 150)
     }
-  }, [answeredCount, quiz])
+  }, [answeredCount, quiz, autoProgressSubmitted])
 
   const generate = async (append = false) => {
     if (!topic.trim()) {
@@ -293,6 +363,7 @@ function Quiz() {
     if (!append) {
       setQuiz(null)
       setAnswers({})
+      setAutoProgressSubmitted(false)
     }
     setShowTopicSwitchPrompt(false)
     try {

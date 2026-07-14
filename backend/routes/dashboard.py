@@ -276,3 +276,49 @@ async def dashboard_summary(current_user: dict = Depends(get_current_user)):
         "saved_jobs": saved_jobs,
         "prep_progress": prep_progress,
     }
+
+
+class AutoProgressRequest(BaseModel):
+    topic: str
+    type: str = "quiz"
+
+
+@router.post("/exams/auto-progress")
+async def exam_auto_progress(
+    request: AutoProgressRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    topic_lower = request.topic.strip().lower()
+    if not topic_lower:
+        raise HTTPException(status_code=400, detail="Topic cannot be empty")
+
+    cursor = exams_collection.find({"user_id": current_user["_id"]})
+    exams = [doc async for doc in cursor]
+
+    matched_exam = None
+    for exam in exams:
+        name_lower = exam.get("name", "").lower()
+        cat_lower = exam.get("category", "").lower()
+        if (topic_lower in name_lower or name_lower in topic_lower or
+            topic_lower in cat_lower or cat_lower in topic_lower):
+            matched_exam = exam
+            break
+
+    if not matched_exam:
+        return {"status": "no_matching_exam", "message": f"No active exam found matching topic '{request.topic}'."}
+
+    current_progress = matched_exam.get("progress", 0)
+    new_progress = min(100, current_progress + 3)
+
+    await exams_collection.update_one(
+        {"_id": matched_exam["_id"]},
+        {"$set": {"progress": new_progress}}
+    )
+
+    return {
+        "status": "success",
+        "exam_name": matched_exam.get("name"),
+        "previous_progress": current_progress,
+        "new_progress": new_progress,
+        "increment": new_progress - current_progress
+    }
