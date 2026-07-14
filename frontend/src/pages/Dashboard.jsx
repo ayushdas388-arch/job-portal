@@ -184,10 +184,21 @@ function Dashboard() {
   const inputClass = 'w-full bg-slate-100 hover:bg-slate-200/50 border border-slate-200 focus:bg-white text-slate-800 wander-search-input text-xs rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium'
 
   return (
-    <div className="wander-light-theme min-h-screen p-4 md:p-8 md:pl-24 flex flex-col font-sans select-none overflow-x-hidden">
-      <div className="max-w-7xl mx-auto w-full space-y-12">
+    <div className="relative min-h-screen p-4 md:p-8 md:pl-24 flex flex-col font-sans select-none overflow-x-hidden text-slate-800">
+      {/* UHD Vibrant Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <img
+          src="https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2560&auto=format&fit=crop"
+          alt="Dashboard UHD background"
+          className="w-full h-full object-cover"
+        />
+        {/* Very light white overlay to ensure dark text remains extremely readable */}
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm" />
+      </div>
+
+      <div className="max-w-7xl mx-auto w-full space-y-12 relative z-10">
         {/* Page Header with Profile Card */}
-        <div className="wander-bg-white rounded-3xl border border-slate-200/80 p-6 wander-badge-shadow flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-slate-200/80 p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
             {/* Avatar frame */}
             <div className="relative group cursor-pointer" onClick={() => setShowAvatarModal(true)}>
@@ -446,7 +457,7 @@ function Dashboard() {
 // Modernized Sub-components
 function StatCard({ label, value }) {
   return (
-    <div className="wander-bg-white p-6 rounded-3xl border border-slate-200/80 wander-badge-shadow flex flex-col justify-center transition-all hover:shadow-md">
+    <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-lg flex flex-col justify-center transition-all hover:shadow-xl">
       <p className="text-3xl md:text-4xl font-extrabold text-blue-600">{value}</p>
       <p className="text-xs font-bold text-slate-400 mt-2 tracking-wider uppercase">{label}</p>
     </div>
@@ -455,7 +466,7 @@ function StatCard({ label, value }) {
 
 function Panel({ title, children }) {
   return (
-    <div className="wander-bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 wander-badge-shadow">
+    <div className="bg-white/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-lg">
       <h2 className="text-xl font-extrabold wander-text-dark mb-6 tracking-tight">{title}</h2>
       {children}
     </div>
@@ -464,8 +475,8 @@ function Panel({ title, children }) {
 
 function Empty({ text }) {
   return (
-    <div className="text-center py-8 wander-bg-gray rounded-2xl border border-dashed border-slate-300">
-      <p className="text-sm font-semibold text-slate-400">{text}</p>
+    <div className="text-center py-8 bg-white/50 rounded-2xl border border-dashed border-slate-300">
+      <p className="text-sm font-semibold text-slate-500">{text}</p>
     </div>
   )
 }
