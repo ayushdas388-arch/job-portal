@@ -349,3 +349,75 @@ async def update_profile(
     return {"message": "Profile updated successfully"}
 
 
+class GoogleLoginRequest(BaseModel):
+    email: str
+    name: str
+    profile_image: Optional[str] = None
+    credential: Optional[str] = None
+
+
+@router.post("/google")
+async def google_login(data: GoogleLoginRequest):
+    email = data.email.strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid email from Google account")
+
+    db_user = await users_collection.find_one(
+        {"email": {"$regex": f"^{re.escape(email)}$", "$options": "i"}}
+    )
+
+    if db_user:
+        if not db_user.get("profile_image") and data.profile_image:
+            await users_collection.update_one(
+                {"_id": db_user["_id"]},
+                {"$set": {"profile_image": data.profile_image}}
+            )
+            db_user["profile_image"] = data.profile_image
+
+        token = create_token(str(db_user["_id"]), db_user.get("role", "jobseeker"))
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "role": db_user.get("role", "jobseeker"),
+            "name": db_user.get("name", ""),
+            "profile_image": db_user.get("profile_image", ""),
+        }
+    else:
+        name_parts = data.name.strip().split(" ", 1)
+        first_name = name_parts[0] if name_parts else "Google"
+        last_name = name_parts[1] if len(name_parts) > 1 else "User"
+
+        new_user = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "name": data.name.strip() or f"{first_name} {last_name}",
+            "email": email,
+            "phone": "",
+            "password": "",
+            "role": "jobseeker",
+            "profile_image": data.profile_image or "",
+            "created_at": datetime.now(timezone.utc),
+        }
+
+        try:
+            result = await users_collection.insert_one(new_user)
+            user_id = str(result.inserted_id)
+        except DuplicateKeyError as exc:
+            db_user = await users_collection.find_one({"email": email})
+            if not db_user:
+                raise HTTPException(status_code=409, detail="Registration failed due to conflict") from exc
+            user_id = str(db_user["_id"])
+            new_user = db_user
+
+        token = create_token(user_id, "jobseeker")
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "role": "jobseeker",
+            "name": new_user.get("name", ""),
+            "profile_image": new_user.get("profile_image", ""),
+        }
+
+
