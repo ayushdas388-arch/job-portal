@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import API from '../api/axios'
 import Recaptcha from '../components/Recaptcha'
 import { toast } from 'react-toastify'
+import { useGoogleLogin } from '@react-oauth/google'
 
 function Register() {
   const [firstName, setFirstName] = useState('')
@@ -21,16 +22,32 @@ function Register() {
   const captchaRef = useRef(null)
   const navigate = useNavigate()
 
-  const handleGoogleRedirect = () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-    if (!clientId) {
-      toast.error("Google Client ID is not configured in the frontend environment.")
-      return
+  const handleGoogleLogin = useGoogleLogin({
+    flow: 'auth-code',
+    onSuccess: async (codeResponse) => {
+      setLoading(true)
+      setError('')
+      try {
+        const { data } = await API.post('/auth/google-callback', {
+          code: codeResponse.code,
+          redirect_uri: 'postmessage'
+        })
+        localStorage.setItem('token', data.access_token)
+        localStorage.setItem('name', data.name)
+        localStorage.setItem('role', data.role)
+        localStorage.setItem('profile_image', data.profile_image || '')
+        toast.success(`Welcome ${data.name}!`)
+        navigate('/')
+      } catch (err) {
+        setError(err.response?.data?.detail || 'Google Login failed!')
+      } finally {
+        setLoading(false)
+      }
+    },
+    onError: () => {
+      toast.error('Google login failed or was cancelled.')
     }
-    const redirectUri = `${window.location.origin}/google-callback`
-    const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20email%20profile&prompt=select_account`
-    window.location.href = oauthUrl
-  }
+  })
 
   const handleKeyDown = (e, nextFieldId) => {
     if (e.key === 'Enter') {
@@ -238,7 +255,7 @@ function Register() {
         </div>
 
         <button
-          onClick={handleGoogleRedirect}
+          onClick={handleGoogleLogin}
           type="button"
           className="w-full wander-google-btn text-xs font-extrabold py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2.5 cursor-pointer"
         >

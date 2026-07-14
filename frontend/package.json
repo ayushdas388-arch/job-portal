@@ -12,6 +12,7 @@
   "dependencies": {
     "@jsonresume/schema": "^1.3.0",
     "@jsonresume/theme-stackoverflow": "^2.1.3",
+    "@react-oauth/google": "^0.13.5",
     "axios": "^1.16.1",
     "html2pdf.js": "^0.14.0",
     "jsonresume-theme-flat": "^0.3.7",
