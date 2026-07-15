@@ -153,7 +153,6 @@ function Layout({ children }) {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              <Link to="/admin" onClick={() => setIsSidebarOpen(false)} className="text-center text-sm text-slate-600 hover:text-blue-600 font-bold py-1">Admin Panel</Link>
               <Link to="/login" onClick={() => setIsSidebarOpen(false)} className="text-center text-sm text-slate-600 hover:text-blue-600 font-bold py-1">Login</Link>
               <Link to="/register" onClick={() => setIsSidebarOpen(false)} className="bg-[#0f172a] text-white hover:bg-blue-600 text-center text-sm py-2.5 rounded-xl font-bold transition-all shadow-sm">Register</Link>
             </div>

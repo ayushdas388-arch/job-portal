@@ -45,7 +45,6 @@ function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/admin" className="hover:text-white/90 transition">Admin Panel</Link>
               <Link to="/login" className="hover:text-white/90 transition">Login</Link>
               <Link to="/register" className="neon-btn">Register</Link>
             </>
