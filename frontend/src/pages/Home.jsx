@@ -496,6 +496,7 @@ function Home() {
               <p className="text-xs text-slate-400 leading-relaxed">
                 Follow direct links to apply on source websites and save roles to your progress tracking panel.
               </p>
+            </div>
           </div>
         </section>
 
