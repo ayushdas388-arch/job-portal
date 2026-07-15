@@ -37,26 +37,29 @@ function Layout({ children }) {
   const canManageJobs = role === 'company' || role === 'admin';
   const isHome = location.pathname === '/';
 
-  // Sidebar ke navigation links - fixed paths to match App.jsx
-  const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Direct Matcher', path: '/ai-match' },
-    { name: 'Resume Builder', path: '/resume-builder' },
-    { name: 'Skill Gap', path: '/skill-gap' },
-    { name: 'Tracker', path: '/applications', auth: true },
-    { name: 'ATS Score', path: '/ats' },
-    { name: 'Preparation', path: '/prep' },
-    { name: 'Jobs', path: '/jobs' },
-    { name: 'Govt Exam Updates', path: '/updates' },
-    { name: 'Mock Interview', path: '/ai-interview' },
-    { name: 'Career Roadmap', path: '/roadmap' },
-    { name: 'Eligibility', path: '/eligibility' },
-    { name: 'Alerts', path: '/notifications', auth: true },
-  ];
-
-  if (canManageJobs) {
-    navItems.push({ name: 'Admin', path: '/admin', auth: true });
+  // Sidebar ke navigation links
+  let navItems = [];
+  if (role === 'admin' || role === 'company') {
+    navItems = [
+      { name: 'Admin Dashboard', path: '/admin', auth: true }
+    ];
+  } else {
+    navItems = [
+      { name: 'Home', path: '/' },
+      { name: 'Dashboard', path: '/dashboard' },
+      { name: 'Direct Matcher', path: '/ai-match' },
+      { name: 'Resume Builder', path: '/resume-builder' },
+      { name: 'Skill Gap', path: '/skill-gap' },
+      { name: 'Tracker', path: '/applications', auth: true },
+      { name: 'ATS Score', path: '/ats' },
+      { name: 'Preparation', path: '/prep' },
+      { name: 'Jobs', path: '/jobs' },
+      { name: 'Govt Exam Updates', path: '/updates' },
+      { name: 'Mock Interview', path: '/ai-interview' },
+      { name: 'Career Roadmap', path: '/roadmap' },
+      { name: 'Eligibility', path: '/eligibility' },
+      { name: 'Alerts', path: '/notifications', auth: true },
+    ];
   }
 
   const handleLogout = () => {
