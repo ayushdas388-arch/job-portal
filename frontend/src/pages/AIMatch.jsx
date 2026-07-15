@@ -28,6 +28,7 @@ function AIMatch() {
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState('skills')
   const [searched, setSearched] = useState(false)
+  const [expandedReasons, setExpandedReasons] = useState([])
 
   // Search autocomplete state
   const [searchQuery, setSearchQuery] = useState('')
@@ -62,6 +63,13 @@ function AIMatch() {
     setSearched(false)
     setFile(null)
     setSelectedSkills([])
+    setExpandedReasons([])
+  }
+
+  const toggleReason = (idx) => {
+    setExpandedReasons((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+    )
   }
 
   const handleMatch = async () => {
@@ -356,7 +364,13 @@ function AIMatch() {
                             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Match</p>
                           </div>
                         </div>
-                        <p className="text-slate-500 text-xs leading-relaxed font-semibold line-clamp-3">{job.reason}</p>
+                        <p 
+                          onClick={() => toggleReason(i)}
+                          className={`text-slate-500 text-xs leading-relaxed font-semibold cursor-pointer transition-all ${expandedReasons.includes(i) ? '' : 'line-clamp-3'}`}
+                          title="Click to expand/collapse"
+                        >
+                          {job.reason}
+                        </p>
                         <p className="text-[10px] text-slate-400 font-semibold bg-slate-50 border border-slate-200/50 p-2.5 rounded-xl">Search query: <code className="font-mono text-blue-600 font-bold">{job.query}</code></p>
                       </div>
 

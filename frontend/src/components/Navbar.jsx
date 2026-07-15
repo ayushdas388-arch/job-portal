@@ -19,13 +19,13 @@ function Navbar() {
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <Link to="/" className="text-2xl font-extrabold tracking-tight drop-shadow neon-text">JobPortal</Link>
         <div className="flex gap-4 items-center">
-          <Link to="/jobs" className="hover:text-white/90 transition">Jobs</Link>
           <Link to="/dashboard" className="hover:text-white/90 transition">Dashboard</Link>
           <Link to="/ai-match" className="hover:text-white/90 transition">Direct Matcher</Link>
           <Link to="/resume-builder" className="hover:text-white/90 transition">Resume Builder</Link>
           <Link to="/ats" className="hover:text-white/90 transition">ATS Score</Link>
           <Link to="/skill-gap" className="hover:text-white/90 transition">Skill Gap</Link>
           <Link to="/prep" className="hover:text-white/90 transition">Prep Hub</Link>
+          <Link to="/jobs" className="hover:text-white/90 transition">Jobs</Link>
           <Link to="/updates" className="hover:text-white/90 transition">Govt Exam Updates</Link>
           <Link to="/eligibility" className="hover:text-white/90 transition">Eligibility</Link>
           {token ? (
