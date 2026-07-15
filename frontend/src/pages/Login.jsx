@@ -16,7 +16,16 @@ function Login() {
   const [captchaToken, setCaptchaToken] = useState('')
   const captchaRef = useRef(null)
   const navigate = useNavigate()
-
+  useEffect(() => {
+    API.get('/auth/config')
+      .then(({ data }) => {
+        setCaptchaEnabled(data.captcha_enabled)
+        setSiteKey(data.recaptcha_site_key)
+      })
+      .catch(() => {
+        // config fetch fail ho to captcha disabled hi rehne do, login block mat karo
+      })
+  }, [])
   const handleGoogleLogin = useGoogleLogin({
     flow: 'auth-code',
     onSuccess: async (codeResponse) => {
@@ -86,9 +95,9 @@ function Login() {
   return (
     <div className="wander-light-theme relative min-h-screen flex items-center justify-center p-4 overflow-hidden select-none">
       {/* Specific HD Career Wallpaper */}
-      <img 
-        src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80" 
-        alt="Login background" 
+      <img
+        src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80"
+        alt="Login background"
         className="absolute inset-0 w-full h-full object-cover"
       />
       {/* Soft Light Overlay */}
