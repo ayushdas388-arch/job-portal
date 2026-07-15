@@ -185,7 +185,7 @@ function Register() {
             <label className="block text-[10px] font-bold wander-text-dark uppercase tracking-wider">Phone Number*</label>
             <div className="flex">
               <select
-                className="bg-slate-100 hover:bg-slate-200/50 border border-slate-200 text-slate-800 text-xs rounded-l-xl px-3 py-3 border-r-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
+                className="bg-slate-100 hover:bg-slate-200 border border-slate-200 !text-slate-900 text-xs rounded-l-xl px-2 py-3 border-r-0 focus:outline-none focus:bg-white transition-all font-bold cursor-pointer"
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
               >
