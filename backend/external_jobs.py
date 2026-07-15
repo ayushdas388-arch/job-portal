@@ -213,13 +213,6 @@ def list_platforms(category: str = "all", q: str = "") -> list[dict]:
     if category in {"private", "government", "internship"}:
         platforms = [item for item in platforms if item["category"] == category]
 
-    if query:
-        platforms = [
-            item
-            for item in platforms
-            if query in item["site"].casefold() or query in item["description"].casefold()
-        ]
-
     return [
         {
             "id": item["id"],
