@@ -541,8 +541,7 @@ async def google_callback(request: GoogleCallbackRequest):
 
 
 @router.get("/users")
-@can_manage_jobs
-async def get_all_users(request: Request, current_user: dict = Depends(get_current_user)):
+async def get_all_users(request: Request, current_user: dict = Depends(can_manage_jobs)):
     """Fetch all registered users for the admin dashboard."""
     users = await users_collection.find({}, {"password": 0}).sort("created_at", -1).to_list(length=1000)
     
@@ -559,8 +558,7 @@ async def get_all_users(request: Request, current_user: dict = Depends(get_curre
     return {"users": formatted_users}
 
 @router.delete("/users/{user_id}")
-@can_manage_jobs
-async def delete_user(user_id: str, request: Request, current_user: dict = Depends(get_current_user)):
+async def delete_user(user_id: str, request: Request, current_user: dict = Depends(can_manage_jobs)):
     """Delete a user. An admin cannot delete themselves."""
     if str(current_user["_id"]) == user_id:
         raise HTTPException(status_code=400, detail="You cannot delete your own account.")
