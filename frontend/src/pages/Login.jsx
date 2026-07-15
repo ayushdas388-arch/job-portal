@@ -32,11 +32,7 @@ function Login() {
         localStorage.setItem('role', data.role)
         localStorage.setItem('profile_image', data.profile_image || '')
         toast.success(`Welcome back ${data.name}!`)
-        if (data.role === 'admin' || data.role === 'company') {
-          navigate('/admin')
-        } else {
-          navigate('/')
-        }
+        navigate('/')
       } catch (err) {
         setError(err.response?.data?.detail || 'Google Login failed!')
       } finally {
@@ -66,11 +62,7 @@ function Login() {
       localStorage.setItem('role', response.data.role)
       localStorage.setItem('profile_image', response.data.profile_image || '')
       toast.success(`Welcome back ${response.data.name}!`)
-      if (response.data.role === 'admin' || response.data.role === 'company') {
-        navigate('/admin')
-      } else {
-        navigate('/')
-      }
+      navigate('/')
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed!')
       // token is single-use; clear it so the user solves a fresh challenge
