@@ -1,11 +1,10 @@
 import re
 import random
-import logging
 from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, Request, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -16,7 +15,6 @@ import captcha_service
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 from database import users_collection
 from rate_limit import limiter
-from email_utils import send_reset_otp_email
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -262,7 +260,7 @@ class ResetPasswordRequest(BaseModel):
 
 
 @router.post("/forgot-password")
-async def forgot_password(data: ForgotPasswordRequest, background_tasks: BackgroundTasks):
+async def forgot_password(data: ForgotPasswordRequest):
     user = await users_collection.find_one(
         {"email": {"$regex": f"^{re.escape(data.email)}$", "$options": "i"}}
     )
@@ -281,18 +279,16 @@ async def forgot_password(data: ForgotPasswordRequest, background_tasks: Backgro
         {"$set": {"reset_otp": otp, "reset_otp_expires": expires}}
     )
 
-    # Schedule the actual email to be sent in the background
-    background_tasks.add_task(send_reset_otp_email, data.email, otp)
-
-    # Also log it for debugging purposes just in case SMTP fails
+    # Simulate sending email by logging it in the backend terminal console logs
     print("\n" + "=" * 50)
-    print("  BACKGROUND EMAIL TASK SCHEDULED")
+    print("  SIMULATED EMAIL SENT")
     print(f"  To: {data.email}")
-    print(f"  Code: {otp}")
+    print("  Subject: CareerPilot Password Recovery Verification Code")
+    print(f"  Message: Your recovery code is {otp}. Expires in 15 minutes.")
     print("=" * 50 + "\n")
 
     return {
-        "message": "Verification code has been sent to your registered email address.",
+        "message": "Verification code has been sent to your registered email address (simulated in backend console).",
     }
 
 
