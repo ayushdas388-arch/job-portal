@@ -44,9 +44,16 @@ function Jobs() {
   const [searchParams] = useSearchParams()
   const initialQuery = searchParams.get('q') || ''
   
+  const isGovKeyword = (query) => {
+    const govKeywords = ['railway', 'ssc', 'upsc', 'bank', 'ibps', 'police', 'army', 'navy', 'govt', 'government', 'defense', 'psu']
+    return govKeywords.some(kw => query.toLowerCase().includes(kw))
+  }
+  
+  const initialTab = isGovKeyword(initialQuery) ? 'gov' : 'private'
+
   const [searchInput, setSearchInput] = useState(initialQuery)
   const [searchQuery, setSearchQuery] = useState(initialQuery)
-  const [tab, setTab] = useState('private')
+  const [tab, setTab] = useState(initialTab)
   const [platforms, setPlatforms] = useState([])
   const [results, setResults] = useState([])
   const [saved, setSaved] = useState([])
@@ -94,7 +101,13 @@ function Jobs() {
   }
 
   const runSearch = () => {
-    setSearchQuery(searchInput.trim())
+    const q = searchInput.trim()
+    setSearchQuery(q)
+    if (q && isGovKeyword(q)) {
+      setTab('gov')
+    } else if (q) {
+      setTab('private')
+    }
   }
 
   return (
