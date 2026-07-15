@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import API from '../api/axios'
 import BrandIcon from '../components/BrandIcon'
 import { toast } from 'react-toastify'
@@ -40,8 +41,11 @@ const platformCardStyles = {
 const defaultCardStyle = 'bg-gradient-to-br from-slate-50 to-white border-slate-200';
 
 function Jobs() {
-  const [searchInput, setSearchInput] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchParams] = useSearchParams()
+  const initialQuery = searchParams.get('q') || ''
+  
+  const [searchInput, setSearchInput] = useState(initialQuery)
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [tab, setTab] = useState('private')
   const [platforms, setPlatforms] = useState([])
   const [results, setResults] = useState([])
