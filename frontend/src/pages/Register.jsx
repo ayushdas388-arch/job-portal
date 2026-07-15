@@ -21,7 +21,16 @@ function Register() {
   const [agreeTerms, setAgreeTerms] = useState(false)
   const captchaRef = useRef(null)
   const navigate = useNavigate()
-
+  useEffect(() => {
+    API.get('/auth/config')
+      .then(({ data }) => {
+        setCaptchaEnabled(data.captcha_enabled)
+        setSiteKey(data.recaptcha_site_key)
+      })
+      .catch(() => {
+        // config fetch fail ho to captcha disabled hi rehne do, login block mat karo
+      })
+  }, [])
   const handleGoogleLogin = useGoogleLogin({
     flow: 'auth-code',
     onSuccess: async (codeResponse) => {
@@ -104,9 +113,9 @@ function Register() {
   return (
     <div className="wander-light-theme relative min-h-screen flex items-center justify-center p-4 overflow-hidden select-none">
       {/* Specific HD Onboarding/Collaboration Wallpaper */}
-      <img 
-        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&auto=format&fit=crop&q=80" 
-        alt="Register background" 
+      <img
+        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&auto=format&fit=crop&q=80"
+        alt="Register background"
         className="absolute inset-0 w-full h-full object-cover"
       />
       {/* Soft Light Overlay */}
