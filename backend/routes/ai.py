@@ -239,31 +239,31 @@ async def groq_external_match(user_info: str, provided_skills: list[str] | None 
         return fallback_external_match(user_info, provided_skills)
 
     prompt = f"""
-You are a job-search assistant. The portal does not host its own jobs.
-Your task is to infer the best external job-search intents from the user's profile.
+You are an expert career counselor and Technical Recruiter. The user is looking for jobs based on their profile.
+Your task is to analyze their profile deeply and generate highly realistic job-search intents.
 
-User profile:
+CRITICAL INSTRUCTIONS:
+1. Avoid generic descriptions like "Python is a primary skill." Be highly specific about WHY they match the role based on their exact skills.
+2. The "reason" MUST be detailed (2-3 sentences), mentioning exact skills they have, and 1-2 skills they might be missing or should learn for this role.
+3. The "match_percent" must be a realistic, granular integer (e.g., 78, 83, 91, 64) rather than generic round numbers like 80 or 90. Be critical in your scoring.
+4. Generate 2 to 3 distinct job roles that fit their profile.
+
+User profile (resume text or selected skills):
 {user_info}
 
 Return ONLY a JSON object in this exact shape:
 {{
-  "detected_skills": ["", ""],
+  "detected_skills": ["List of all valid technical/soft skills found"],
   "searches": [
     {{
-      "title": "specific job title to search for",
-      "skills": ["top matching skills"],
-      "match_percent": 0,
-      "reason": "one short sentence"
+      "title": "Specific Job Title (e.g., Full Stack Engineer, iOS Developer)",
+      "skills": ["Top 3-5 skills matching this role"],
+      "match_percent": 87,
+      "reason": "Detailed explanation of why they are a good fit, what makes their profile stand out for this role, and specific areas they might need to upskill."
     }}
   ],
-  "summary": "one short sentence"
+  "summary": "A highly encouraging 2-sentence summary of their career prospects based on this profile."
 }}
-
-Rules:
-- Provide 2 to 3 search titles.
-- match_percent must be an integer between 50 and 99.
-- Keep the titles practical for external job boards.
-- Keep detected_skills and skills truthful to the profile.
 """
 
     try:
