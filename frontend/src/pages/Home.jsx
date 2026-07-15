@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   FaInstagram,
-  FaTwitter,
   FaFacebookF,
   FaSearch,
   FaBriefcase,
@@ -14,6 +13,7 @@ import {
   FaGraduationCap,
   FaArrowRight
 } from 'react-icons/fa'
+import { FaXTwitter } from 'react-icons/fa6'
 
 function Home() {
   const [activeSlide, setActiveSlide] = useState(0)
@@ -177,7 +177,7 @@ function Home() {
                   <FaInstagram className="text-xs" />
                 </a>
                 <a href="#twitter" className="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:border-blue-600 transition-colors">
-                  <FaTwitter className="text-xs" />
+                  <FaXTwitter className="text-xs" />
                 </a>
                 <a href="#facebook" className="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:border-blue-600 transition-colors">
                   <FaFacebookF className="text-xs" />
@@ -198,7 +198,7 @@ function Home() {
                 <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-2">
                   <FaStar className="text-sm" />
                 </div>
-                <span className="text-xl font-black wander-text-dark">10yrs</span>
+                <span className="text-xl font-black wander-text-dark">1 Year+</span>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Match Experience</span>
               </div>
               <div className="flex flex-col items-center md:items-start text-center md:text-left">
@@ -238,7 +238,7 @@ function Home() {
                 <FaBriefcase />
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-bold wander-text-dark">All-in-One Booking & Track</h3>
+                <h3 className="text-sm font-bold wander-text-dark">All-in-One</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Save roles directly into your dashboard to monitor application status, deadlines, exam alerts, and interview preparations in one unified place.
                 </p>
@@ -382,18 +382,28 @@ function Home() {
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Card 1: Main packages box */}
-          <div className="bg-slate-800 text-white rounded-3xl p-8 flex flex-col justify-between min-h-[300px]">
-            <div className="space-y-3">
+          <div className="rounded-3xl overflow-hidden shadow-md relative min-h-[300px] flex flex-col justify-between p-8 group">
+            <img
+              src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&auto=format&fit=crop&q=80"
+              alt="Career Services"
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/95 via-[#0f172a]/75 to-[#0f172a]/50" />
+            
+            <div className="relative z-10 space-y-3">
               <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider block">Career Services</span>
               <h3 className="text-2xl font-black text-white leading-tight">Smart tools to level up your career game</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
                 Unlock specialized AI analysis, template builders, and real-time trackers. Custom tools designed for modern candidate needs.
               </p>
             </div>
-            <div className="pt-6">
-              <Link to="/ai-match" className="bg-white hover:bg-blue-600 hover:text-white text-slate-900 text-xs font-bold px-6 py-3 rounded-full transition-all inline-block shadow-sm">
+            <div className="relative z-10 pt-6">
+              <button 
+                onClick={() => window.dispatchEvent(new Event('open-sidebar'))}
+                className="bg-white hover:bg-blue-600 hover:text-white text-slate-900 text-xs font-bold px-6 py-3 rounded-full transition-all inline-block shadow-sm"
+              >
                 Browse all tools
-              </Link>
+              </button>
             </div>
           </div>
 

@@ -54,7 +54,7 @@ function Layout({ children }) {
       { name: 'ATS Score', path: '/ats' },
       { name: 'Preparation', path: '/prep' },
       { name: 'Jobs', path: '/jobs' },
-      { name: 'Govt Exam Updates', path: '/updates' },
+      { name: 'Exam Updates', path: '/updates' },
       { name: 'Mock Interview', path: '/ai-interview' },
       { name: 'Career Roadmap', path: '/roadmap' },
       { name: 'Eligibility', path: '/eligibility' },

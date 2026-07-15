@@ -59,7 +59,7 @@ function GovtUpdates() {
       <div className="max-w-4xl mx-auto w-full space-y-12 relative z-10">
         {/* Page Header */}
         <div className="text-center space-y-3">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight" style={{ color: '#0f172a' }}>Government Exam Updates</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight" style={{ color: '#0f172a' }}>Exam Updates</h1>
           <p className="text-xs md:text-sm font-bold max-w-lg mx-auto" style={{ color: '#475569' }}>
             Latest updates for exam calendars, results, notifications, and admit cards.
           </p>

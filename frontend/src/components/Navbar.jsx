@@ -26,7 +26,7 @@ function Navbar() {
           <Link to="/skill-gap" className="hover:text-white/90 transition">Skill Gap</Link>
           <Link to="/prep" className="hover:text-white/90 transition">Prep Hub</Link>
           <Link to="/jobs" className="hover:text-white/90 transition">Jobs</Link>
-          <Link to="/updates" className="hover:text-white/90 transition">Govt Exam Updates</Link>
+          <Link to="/updates" className="hover:text-white/90 transition">Exam Updates</Link>
           <Link to="/eligibility" className="hover:text-white/90 transition">Eligibility</Link>
           {token ? (
             <>
