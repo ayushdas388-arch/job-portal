@@ -47,7 +47,11 @@ function App() {
           <Route path="/ai-interview" element={<AIInterview />} />
           <Route path="/roadmap" element={<CareerRoadmap />} />
           <Route path="/eligibility" element={<EligibilityChecker />} />
-          <Route path="/ats" element={<ATSScore />} />
+          <Route path="/ats" element={
+            <ProtectedRoute>
+              <ATSScore />
+            </ProtectedRoute>
+          } />
           <Route path="/terms" element={<TermsConditions />} />
           <Route
             path="/admin"
