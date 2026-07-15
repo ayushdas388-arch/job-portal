@@ -49,7 +49,7 @@ function Jobs() {
     return govKeywords.some(kw => query.toLowerCase().includes(kw))
   }
   
-  const initialTab = isGovKeyword(initialQuery) ? 'gov' : 'private'
+  const initialTab = isGovKeyword(initialQuery) ? 'government' : 'private'
 
   const [searchInput, setSearchInput] = useState(initialQuery)
   const [searchQuery, setSearchQuery] = useState(initialQuery)
@@ -104,7 +104,7 @@ function Jobs() {
     const q = searchInput.trim()
     setSearchQuery(q)
     if (q && isGovKeyword(q)) {
-      setTab('gov')
+      setTab('government')
     } else if (q) {
       setTab('private')
     }
