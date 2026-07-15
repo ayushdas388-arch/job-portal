@@ -496,9 +496,13 @@ function Home() {
               <p className="text-xs text-slate-400 leading-relaxed">
                 Follow direct links to apply on source websites and save roles to your progress tracking panel.
               </p>
-            </div>
           </div>
         </section>
+
+        {/* Footer Text */}
+        <footer className="text-center py-8 border-t border-slate-100 mt-12">
+          <p className="text-[10px] text-slate-400 font-bold tracking-wider uppercase select-none">@CareerPilot</p>
+        </footer>
 
       </div>
     </div>
