@@ -539,3 +539,21 @@ async def google_callback(request: GoogleCallbackRequest):
         }
 
 
+
+@router.get("/users")
+@can_manage_jobs
+async def get_all_users(request: Request, current_user: dict = Depends(get_current_user)):
+    """Fetch all registered users for the admin dashboard."""
+    users = await users_collection.find({}, {"password": 0}).sort("created_at", -1).to_list(length=1000)
+    
+    formatted_users = []
+    for u in users:
+        formatted_users.append({
+            "id": str(u["_id"]),
+            "name": u.get("name", ""),
+            "email": u.get("email", ""),
+            "role": u.get("role", "jobseeker"),
+            "created_at": u.get("created_at", "").isoformat() if hasattr(u.get("created_at"), "isoformat") else None
+        })
+        
+    return {"users": formatted_users}
